@@ -14,301 +14,94 @@
             padding: 20px;
         }
         .container { max-width: 1400px; margin: 0 auto; }
-        h1 {
-            text-align: center;
-            font-size: 2.5rem;
-            color: #00ff88;
-            text-shadow: 0 0 20px rgba(0,255,136,0.3);
-            margin-bottom: 5px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #888;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
+        h1 { text-align: center; font-size: 2.5rem; color: #00ff88; text-shadow: 0 0 20px rgba(0,255,136,0.3); margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 20px; font-size: 14px; }
         .subtitle .highlight { color: #00ff88; }
-        .card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 15px;
-            backdrop-filter: blur(10px);
-        }
-        .card-title {
-            color: #00ff88;
-            font-size: 1rem;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 18px; margin-bottom: 15px; backdrop-filter: blur(10px); }
+        .card-title { color: #00ff88; font-size: 1rem; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media (max-width: 1024px) { .row { grid-template-columns: 1fr; } }
         @media (max-width: 768px) { .row { grid-template-columns: 1fr; } }
         
-        textarea, input, select {
-            width: 100%;
-            padding: 10px 12px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 13px;
-            font-family: 'Consolas', 'Courier New', monospace;
-            transition: border-color 0.3s;
-            box-sizing: border-box;
-        }
-        textarea:focus, input:focus, select:focus {
-            outline: none;
-            border-color: #00ff88;
-        }
+        textarea, input, select { width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 13px; font-family: 'Consolas', 'Courier New', monospace; transition: border-color 0.3s; box-sizing: border-box; }
+        textarea:focus, input:focus, select:focus { outline: none; border-color: #00ff88; }
         textarea { min-height: 80px; resize: vertical; }
         select { appearance: auto; cursor: pointer; }
         
-        .btn {
-            padding: 10px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin: 4px;
-        }
+        .btn { padding: 10px 25px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin: 4px; }
         .btn-primary { background: #00ff88; color: #0a0a1a; }
         .btn-primary:hover { background: #00cc66; transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,255,136,0.3); }
         .btn-secondary { background: #ff6b6b; color: #fff; }
         .btn-secondary:hover { background: #cc5555; transform: translateY(-2px); }
-        .btn-success { background: #2ecc71; color: #fff; }
-        .btn-success:hover { background: #27ae60; }
-        .btn-warning { background: #f39c12; color: #fff; }
-        .btn-warning:hover { background: #e67e22; }
-        .btn-purple { background: #9b59b6; color: #fff; }
-        .btn-purple:hover { background: #8e44ad; }
         .btn-sm { padding: 5px 12px; font-size: 12px; }
         .btn-outline { background: transparent; border: 1px solid #00ff88; color: #00ff88; }
         .btn-outline:hover { background: #00ff88; color: #0a0a1a; }
         .btn-outline-danger { background: transparent; border: 1px solid #ff6b6b; color: #ff6b6b; }
         .btn-outline-danger:hover { background: #ff6b6b; color: #0a0a1a; }
         .btn-active { background: #00ff88 !important; color: #0a0a1a !important; }
-        .btn-copy {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 4px;
-            padding: 2px 10px;
-            color: #888;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.3s;
-        }
+        .btn-copy { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px 10px; color: #888; cursor: pointer; font-size: 11px; transition: all 0.3s; }
         .btn-copy:hover { background: rgba(255,255,255,0.1); color: #fff; }
         
         .flex { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
         .mt-10 { margin-top: 10px; }
         .mb-10 { margin-bottom: 10px; }
         .text-muted { color: #888; font-size: 13px; }
-        .text-success { color: #00ff88; }
-        .text-error { color: #ff6b6b; }
         
-        .technique-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            padding: 6px 0;
-        }
-        .tech-tag {
-            background: rgba(0,255,136,0.12);
-            border: 1px solid rgba(0,255,136,0.25);
-            border-radius: 16px;
-            padding: 4px 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-        }
+        .technique-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0; }
+        .tech-tag { background: rgba(0,255,136,0.12); border: 1px solid rgba(0,255,136,0.25); border-radius: 16px; padding: 4px 12px; cursor: pointer; transition: all 0.3s; user-select: none; display: flex; align-items: center; gap: 6px; font-size: 13px; }
         .tech-tag:hover { background: rgba(0,255,136,0.25); }
         .tech-tag .remove { cursor: pointer; font-weight: bold; color: #ff6b6b; font-size: 14px; }
         .tech-tag .remove:hover { color: #ff0000; }
         
-        .output-box {
-            background: rgba(0,0,0,0.4);
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 6px;
-            max-height: 150px;
-            overflow-y: auto;
-            font-family: 'Consolas', monospace;
-            font-size: 12px;
-            white-space: pre-wrap;
-            word-break: break-all;
-            border: 1px solid rgba(255,255,255,0.05);
-            min-height: 40px;
-        }
-        .output-box.success { border-color: #00ff88; }
-        .output-box.error { border-color: #ff6b6b; }
+        .output-box { background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; margin-top: 6px; max-height: 150px; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; border: 1px solid rgba(255,255,255,0.05); min-height: 40px; }
         .output-box.saoyut-box { max-height: 180px; font-size: 11px; }
         
-        .status {
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 14px;
-        }
+        .status { padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 14px; }
         .status.success { background: rgba(0,255,136,0.1); border: 1px solid #00ff88; color: #00ff88; }
         .status.error { background: rgba(255,107,107,0.1); border: 1px solid #ff6b6b; color: #ff6b6b; }
         .status.info { background: rgba(52,152,219,0.1); border: 1px solid #3498db; color: #3498db; }
         .status.warning { background: rgba(243,156,18,0.1); border: 1px solid #f39c12; color: #f39c12; }
         
-        .mode-toggle {
-            display: flex;
-            gap: 5px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            padding: 4px;
-        }
+        .mode-toggle { display: flex; gap: 5px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 4px; }
         .mode-toggle .btn { margin: 0; border-radius: 6px; padding: 8px 20px; font-size: 13px; }
         .input-hint { font-size: 12px; color: #666; margin-top: 5px; }
         .input-hint .highlight { color: #00ff88; }
         
         .tab-group { display: flex; gap: 5px; margin-bottom: 8px; flex-wrap: wrap; }
-        .tab-btn {
-            padding: 4px 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 6px;
-            background: transparent;
-            color: #888;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
-        }
+        .tab-btn { padding: 4px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; background: transparent; color: #888; cursor: pointer; font-size: 12px; transition: all 0.3s; }
         .tab-btn:hover { border-color: #00ff88; color: #fff; }
         .tab-btn.active { border-color: #00ff88; background: rgba(0,255,136,0.1); color: #00ff88; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        .output-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-        .saoyut-section {
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 6px;
-            background: rgba(0,0,0,0.15);
-        }
-        .saoyut-section .saoyut-label {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 5px; }
+        .saoyut-section { border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; margin-top: 6px; background: rgba(0,0,0,0.15); }
+        .saoyut-section .saoyut-label { font-size: 12px; color: #888; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
         
-        .badge {
-            background: rgba(255,255,255,0.1);
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            color: #aaa;
-        }
+        .badge { background: rgba(255,255,255,0.1); padding: 2px 10px; border-radius: 12px; font-size: 11px; color: #aaa; }
         .badge-success { background: rgba(0,255,136,0.2); color: #00ff88; }
         .badge-error { background: rgba(255,107,107,0.2); color: #ff6b6b; }
         .badge-warning { background: rgba(243,156,18,0.2); color: #f39c12; }
         
-        .compare-box {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .compare-item {
-            background: rgba(0,0,0,0.3);
-            border-radius: 6px;
-            padding: 10px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
+        .compare-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .compare-item { background: rgba(0,0,0,0.3); border-radius: 6px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); }
         .compare-item .label { font-size: 11px; color: #888; margin-bottom: 4px; }
-        .compare-item .value {
-            font-family: monospace;
-            font-size: 13px;
-            word-break: break-all;
-            max-height: 80px;
-            overflow-y: auto;
-        }
+        .compare-item .value { font-family: monospace; font-size: 13px; word-break: break-all; max-height: 80px; overflow-y: auto; }
         
-        .seed-display {
-            background: rgba(0,255,136,0.05);
-            border: 1px solid rgba(0,255,136,0.1);
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-family: monospace;
-            font-size: 12px;
-            word-break: break-all;
-            min-height: 30px;
-        }
-        .file-upload-area {
-            border: 2px dashed rgba(255,255,255,0.15);
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+        .seed-display { background: rgba(0,255,136,0.05); border: 1px solid rgba(0,255,136,0.1); border-radius: 6px; padding: 8px 12px; font-family: monospace; font-size: 12px; word-break: break-all; min-height: 30px; }
+        .file-upload-area { border: 2px dashed rgba(255,255,255,0.15); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; }
         .file-upload-area:hover { border-color: #00ff88; background: rgba(0,255,136,0.05); }
         .file-upload-area .icon { font-size: 30px; }
         .file-upload-area .text { color: #888; font-size: 13px; }
         .file-upload-area .filename { color: #00ff88; font-weight: bold; }
         .hidden { display: none; }
-        .segment-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-family: monospace;
-            font-size: 12px;
-        }
+        .segment-item { display: flex; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: monospace; font-size: 12px; }
         .segment-item .size { color: #888; font-size: 12px; }
-        .segment-item .status-ok { color: #00ff88; }
-        .segment-item .status-missing { color: #ff6b6b; }
-        .segment-size-select {
-            padding: 4px 8px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 4px;
-            color: #fff;
-            font-size: 12px;
-            font-family: monospace;
-        }
-        .segment-size-select:focus {
-            outline: none;
-            border-color: #00ff88;
-        }
-        .session-info {
-            font-size: 12px;
-            padding: 8px 12px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 6px;
-            font-family: monospace;
-            word-break: break-all;
-        }
+        .segment-size-select { padding: 4px 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; font-size: 12px; font-family: monospace; }
+        .segment-size-select:focus { outline: none; border-color: #00ff88; }
+        .session-info { font-size: 12px; padding: 8px 12px; background: rgba(0,0,0,0.2); border-radius: 6px; font-family: monospace; word-break: break-all; }
         .session-info .label { color: #888; }
         .session-info .value { color: #00ff88; }
     </style>
@@ -316,35 +109,24 @@
 <body>
     <div class="container">
         <h1>🔐 SPC Encryptor Pro</h1>
-        <p class="subtitle">
-            10 kỹ thuật · Mã hóa file · Xuất nhập SAOYUT · 
-            <span class="highlight">v2.4</span>
-        </p>
+        <p class="subtitle">10 kỹ thuật · Mã hóa file · Xuất nhập SAOYUT · <span class="highlight">v2.4.2</span></p>
 
         <div class="row">
             <!-- ===== LEFT COLUMN ===== -->
             <div>
                 <!-- Mode -->
                 <div class="card">
-                    <div class="card-title">
-                        🔄 Chế độ
-                        <span class="badge" id="modeLabel">Đang: Mã hóa</span>
-                    </div>
+                    <div class="card-title">🔄 Chế độ <span class="badge" id="modeLabel">Đang: Mã hóa</span></div>
                     <div class="mode-toggle">
                         <button class="btn btn-sm btn-active" id="modeEncrypt" onclick="setMode('encrypt')">🔐 Mã hóa</button>
                         <button class="btn btn-sm btn-outline" id="modeDecrypt" onclick="setMode('decrypt')">🔓 Giải mã</button>
                     </div>
-                    <div class="input-hint" id="inputHint">
-                        💡 Nhập <span class="highlight">văn bản</span> hoặc <span class="highlight">tải file lên</span> để mã hóa
-                    </div>
+                    <div class="input-hint" id="inputHint">💡 Nhập <span class="highlight">văn bản</span> hoặc <span class="highlight">tải file lên</span> để mã hóa</div>
                 </div>
 
                 <!-- Session Info -->
                 <div class="card" id="sessionCard">
-                    <div class="card-title">
-                        🔐 Phiên bảo mật
-                        <span class="badge" id="sessionStatus">Chưa có phiên</span>
-                    </div>
+                    <div class="card-title">🔐 Phiên bảo mật <span class="badge" id="sessionStatus">Chưa có phiên</span></div>
                     <div class="session-info">
                         <div><span class="label">Session ID:</span> <span class="value" id="sessionDisplay">Chưa tạo</span></div>
                         <div class="mt-10"><span class="label">Thiết bị (Fingerprint):</span> <span class="value" id="fingerprintDisplay" style="color:#888;">Chưa đăng ký</span></div>
@@ -358,12 +140,8 @@
 
                 <!-- Input -->
                 <div class="card">
-                    <div class="card-title">
-                        📝 Dữ liệu đầu vào
-                        <span class="badge" id="fileBadge" style="display:none;">📎 File</span>
-                    </div>
+                    <div class="card-title">📝 Dữ liệu đầu vào <span class="badge" id="fileBadge" style="display:none;">📎 File</span></div>
                     <textarea id="inputText" placeholder="Nhập văn bản hoặc tải file lên...">Hello World! This is SPC Encryption system by Mr.MR</textarea>
-                    
                     <div class="file-upload-area mt-10" id="fileUploadArea" onclick="document.getElementById('fileInput').click()">
                         <div class="icon">📁</div>
                         <div class="text">Kéo thả hoặc click để <span style="color:#00ff88;">tải file</span></div>
@@ -371,7 +149,6 @@
                         <div class="filename" id="uploadedFileName"></div>
                         <input type="file" id="fileInput" style="display:none;" accept=".txt,.spc,.saoyut,.json">
                     </div>
-                    
                     <div class="flex mt-10">
                         <button class="btn btn-sm btn-outline" onclick="loadSample()">📄 Mẫu</button>
                         <button class="btn btn-sm btn-outline" onclick="clearInput()">🗑️ Xóa input</button>
@@ -392,18 +169,11 @@
 
                 <!-- SAOYUT -->
                 <div class="card">
-                    <div class="card-title">
-                        📋 SAOYUT
-                        <span class="badge" id="saoyutStatus">Chưa có</span>
-                    </div>
+                    <div class="card-title">📋 SAOYUT <span class="badge" id="saoyutStatus">Chưa có</span></div>
                     <div class="grid-2">
                         <div class="saoyut-section" style="border-color: rgba(255,165,0,0.3);">
-                            <div class="saoyut-label">
-                                <span style="color: #f39c12;">⬅️ Nhập (để giải mã)</span>
-                                <div>
-                                    <button class="btn-copy" onclick="copySAOYUTInput()">📋 Copy</button>
-                                    <button class="btn-copy" onclick="importSAOYUTFile()">📂 Load</button>
-                                </div>
+                            <div class="saoyut-label"><span style="color: #f39c12;">⬅️ Nhập (để giải mã)</span>
+                                <div><button class="btn-copy" onclick="copySAOYUTInput()">📋 Copy</button><button class="btn-copy" onclick="importSAOYUTFile()">📂 Load</button></div>
                             </div>
                             <textarea id="saoyutInput" placeholder="Dán SAOYUT JSON vào đây..." style="min-height:70px; font-size:11px;"></textarea>
                             <div class="flex mt-10">
@@ -414,24 +184,16 @@
                             </div>
                         </div>
                         <div class="saoyut-section" style="border-color: rgba(0,255,136,0.3);">
-                            <div class="saoyut-label">
-                                <span style="color: #00ff88;">➡️ Hiển thị (từ mã hóa)</span>
-                                <button class="btn-copy" onclick="copySAOYUTDisplay()">📋 Copy</button>
-                            </div>
+                            <div class="saoyut-label"><span style="color: #00ff88;">➡️ Hiển thị (từ mã hóa)</span><button class="btn-copy" onclick="copySAOYUTDisplay()">📋 Copy</button></div>
                             <div class="output-box saoyut-box" id="saoyutDisplay" style="min-height:70px; font-size:11px; color:#aaa;">Chưa có...</div>
-                            <div class="flex mt-10">
-                                <button class="btn btn-sm btn-outline" onclick="syncSAOYUT()">🔄 Sync sang nhập</button>
-                            </div>
+                            <div class="flex mt-10"><button class="btn btn-sm btn-outline" onclick="syncSAOYUT()">🔄 Sync sang nhập</button></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Techniques -->
                 <div class="card">
-                    <div class="card-title">
-                        🔄 Kỹ thuật <span class="badge">Kéo thả</span>
-                        <span class="badge" id="techCount">0/10</span>
-                    </div>
+                    <div class="card-title">🔄 Kỹ thuật <span class="badge">Kéo thả</span> <span class="badge" id="techCount">0/10</span></div>
                     <div class="technique-list" id="techniqueOrder"></div>
                     <div class="flex mt-10">
                         <button class="btn btn-sm btn-outline" onclick="resetOrder()">🔄 Reset</button>
@@ -442,12 +204,8 @@
                 </div>
 
                 <!-- Segment Manager -->
-                <div class="card" id="segmentCard" style="display:none;">
-                    <div class="card-title">
-                        📦 SEGMENT MANAGER
-                        <span class="badge" id="segmentCount">0 segments</span>
-                        <span class="badge" id="sessionBadge" style="display:none;">🔒</span>
-                    </div>
+                <div class="card" id="segmentCard">
+                    <div class="card-title">📦 SEGMENT MANAGER <span class="badge" id="segmentCount">0 segments</span> <span class="badge" id="sessionBadge" style="display:none;">🔒</span></div>
                     
                     <div class="flex mt-10 mb-10">
                         <span style="color:#888; font-size:12px;">Kích thước segment:</span>
@@ -465,14 +223,18 @@
                     </div>
                     
                     <div id="segmentList" style="max-height:200px; overflow-y:auto;">
-                        <div class="text-muted" style="padding:10px; text-align:center;">Chưa có segment nào</div>
+                        <div class="text-muted" style="padding:10px; text-align:center;">Chưa có segment nào. Hãy mã hóa để tạo segment.</div>
                     </div>
                     <div class="flex mt-10">
-                        <button class="btn btn-sm btn-outline" onclick="downloadAllSegments()">📥 Tải tất cả</button>
                         <button class="btn btn-sm btn-outline" onclick="uploadSegments()">📤 Upload segments</button>
+                        <button class="btn btn-sm btn-outline" onclick="downloadAllSegments()">📥 Tải tất cả</button>
                         <button class="btn btn-sm btn-outline-danger" onclick="clearSegments()">🗑️ Xóa segments</button>
+                        <button class="btn btn-sm btn-outline" onclick="loadSegments()">🔄 Làm mới</button>
                     </div>
                     <input type="file" id="segmentFileInput" style="display:none;" multiple accept=".dat">
+                    <div class="mt-10 text-muted" style="font-size:11px; color:#666;">
+                        💡 Upload segments khi giải mã file đã mã hóa với kỹ thuật L.
+                    </div>
                 </div>
 
                 <!-- Actions -->
@@ -489,32 +251,20 @@
 
                 <!-- Output -->
                 <div class="card">
-                    <div class="output-header">
-                        <div class="card-title" style="margin-bottom:0;">📤 Kết quả</div>
-                        <button class="btn-copy" onclick="copyOutput()">📋 Copy</button>
-                    </div>
+                    <div class="output-header"><div class="card-title" style="margin-bottom:0;">📤 Kết quả</div><button class="btn-copy" onclick="copyOutput()">📋 Copy</button></div>
                     <div class="tab-group">
                         <button class="tab-btn active" data-tab="tab-b64" onclick="switchTab('tab-b64')">Base64</button>
                         <button class="tab-btn" data-tab="tab-hex" onclick="switchTab('tab-hex')">Hex</button>
                         <button class="tab-btn" data-tab="tab-plain" onclick="switchTab('tab-plain')">Plaintext</button>
                     </div>
-                    <div id="tab-b64" class="tab-content active">
-                        <div class="output-box" id="outputB64">Chưa có...</div>
-                    </div>
-                    <div id="tab-hex" class="tab-content">
-                        <div class="output-box" id="outputHex">Chưa có...</div>
-                    </div>
-                    <div id="tab-plain" class="tab-content">
-                        <div class="output-box" id="outputPlain">Chưa có...</div>
-                    </div>
+                    <div id="tab-b64" class="tab-content active"><div class="output-box" id="outputB64">Chưa có...</div></div>
+                    <div id="tab-hex" class="tab-content"><div class="output-box" id="outputHex">Chưa có...</div></div>
+                    <div id="tab-plain" class="tab-content"><div class="output-box" id="outputPlain">Chưa có...</div></div>
                 </div>
 
                 <!-- Seed Display -->
                 <div class="card">
-                    <div class="output-header">
-                        <div class="card-title" style="margin-bottom:0;">🌱 Seed</div>
-                        <button class="btn-copy" onclick="copySeed()">📋 Copy</button>
-                    </div>
+                    <div class="output-header"><div class="card-title" style="margin-bottom:0;">🌱 Seed</div><button class="btn-copy" onclick="copySeed()">📋 Copy</button></div>
                     <div class="seed-display" id="seedDisplay">Chưa có seed</div>
                 </div>
 
@@ -522,14 +272,8 @@
                 <div class="card" id="compareCard" style="display:none;">
                     <div class="card-title">📊 So sánh</div>
                     <div class="compare-box">
-                        <div class="compare-item">
-                            <div class="label" id="compareLabel1">📦 Input</div>
-                            <div class="value" id="originalText" style="color:#f39c12;">-</div>
-                        </div>
-                        <div class="compare-item">
-                            <div class="label" id="compareLabel2">📝 Output</div>
-                            <div class="value" id="decryptedText" style="color:#00ff88;">-</div>
-                        </div>
+                        <div class="compare-item"><div class="label" id="compareLabel1">📦 Input</div><div class="value" id="originalText" style="color:#f39c12;">-</div></div>
+                        <div class="compare-item"><div class="label" id="compareLabel2">📝 Output</div><div class="value" id="decryptedText" style="color:#00ff88;">-</div></div>
                     </div>
                     <div id="compareResult" class="mt-10" style="text-align:center; font-weight:bold; font-size:16px;"></div>
                 </div>
@@ -539,7 +283,7 @@
 
     <script>
         // ============================================================
-        // STATE - 10 KỸ THUẬT
+        // STATE
         // ============================================================
         const ALL_TECH = ['R', 'C', 'E', 'Z', 'S', 'H', 'D', 'B', 'P', 'L'];
         const TECH_NAMES = {
@@ -565,7 +309,6 @@
                 navigator.language,
                 new Date().getTimezoneOffset()
             ];
-            
             try {
                 const canvas = document.createElement('canvas');
                 canvas.width = 200;
@@ -582,13 +325,12 @@
                 const b64 = canvas.toDataURL();
                 components.push(b64);
             } catch(e) {}
-            
             const combined = components.join('|||');
             return btoa(combined).substring(0, 64);
         }
 
         // ============================================================
-        // SESSION MANAGEMENT
+        // SESSION
         // ============================================================
         async function createNewSession() {
             try {
@@ -597,7 +339,6 @@
                     headers: { 'Content-Type': 'application/json' }
                 });
                 const result = await response.json();
-                
                 if (result.success) {
                     currentSessionId = result.session_id;
                     sessionTimeout = result.timeout || 3600;
@@ -617,7 +358,6 @@
         async function registerFingerprint(sessionId) {
             const fingerprint = getDeviceFingerprint();
             document.getElementById('fingerprintDisplay').textContent = fingerprint.substring(0, 16) + '...';
-            
             try {
                 const response = await fetch('/api/fingerprint', {
                     method: 'POST',
@@ -625,19 +365,14 @@
                     body: JSON.stringify({ session_id: sessionId, fingerprint: fingerprint })
                 });
                 const result = await response.json();
-                if (result.success) {
-                    console.log('Fingerprint registered');
-                }
-            } catch(e) {
-                console.error('Failed to register fingerprint:', e);
-            }
+                if (result.success) console.log('Fingerprint registered');
+            } catch(e) { console.error('Failed to register fingerprint:', e); }
         }
 
         function updateSessionDisplay(sessionId) {
             document.getElementById('sessionDisplay').textContent = sessionId || 'Chưa tạo';
             document.getElementById('sessionStatus').textContent = sessionId ? '✅ Hoạt động' : '❌ Chưa có phiên';
             document.getElementById('sessionStatus').className = 'badge' + (sessionId ? ' badge-success' : '');
-            
             if (sessionId) {
                 document.getElementById('sessionBadge').style.display = 'inline';
                 document.getElementById('sessionBadge').textContent = '🔒 ' + sessionId.substring(0, 8);
@@ -647,13 +382,9 @@
         }
 
         function startSessionTimer() {
-            if (sessionTimerInterval) {
-                clearInterval(sessionTimerInterval);
-            }
-            
+            if (sessionTimerInterval) clearInterval(sessionTimerInterval);
             let remaining = sessionTimeout;
             updateTimerDisplay(remaining);
-            
             sessionTimerInterval = setInterval(() => {
                 remaining--;
                 updateTimerDisplay(remaining);
@@ -668,31 +399,20 @@
         function updateTimerDisplay(seconds) {
             const mins = Math.floor(seconds / 60);
             const secs = seconds % 60;
-            document.getElementById('sessionTimer').textContent = 
-                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-            if (seconds < 300) {
-                document.getElementById('sessionTimer').style.color = '#ff6b6b';
-            } else if (seconds < 600) {
-                document.getElementById('sessionTimer').style.color = '#f39c12';
-            } else {
-                document.getElementById('sessionTimer').style.color = '#00ff88';
-            }
+            document.getElementById('sessionTimer').textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            if (seconds < 300) document.getElementById('sessionTimer').style.color = '#ff6b6b';
+            else if (seconds < 600) document.getElementById('sessionTimer').style.color = '#f39c12';
+            else document.getElementById('sessionTimer').style.color = '#00ff88';
         }
 
         function clearSession() {
-            if (sessionTimerInterval) {
-                clearInterval(sessionTimerInterval);
-            }
+            if (sessionTimerInterval) clearInterval(sessionTimerInterval);
             currentSessionId = null;
             updateSessionDisplay(null);
             document.getElementById('fingerprintDisplay').textContent = 'Chưa đăng ký';
             document.getElementById('sessionTimer').textContent = '--:--';
-            document.getElementById('segmentCard').style.display = 'none';
             showStatus('🗑️ Phiên đã bị xóa', 'info');
-        }
-
-        function getSessionIdForAPI() {
-            return currentSessionId || '';
+            loadSegments();
         }
 
         // ============================================================
@@ -704,19 +424,11 @@
             setMode('encrypt');
             updateTechCount();
             loadSegmentSize();
-            
             setTimeout(createNewSession, 500);
-            
             document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-            
             const dropArea = document.getElementById('fileUploadArea');
-            dropArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropArea.style.borderColor = '#00ff88';
-            });
-            dropArea.addEventListener('dragleave', () => {
-                dropArea.style.borderColor = 'rgba(255,255,255,0.15)';
-            });
+            dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.style.borderColor = '#00ff88'; });
+            dropArea.addEventListener('dragleave', () => { dropArea.style.borderColor = 'rgba(255,255,255,0.15)'; });
             dropArea.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropArea.style.borderColor = 'rgba(255,255,255,0.15)';
@@ -725,7 +437,6 @@
                     handleFileUpload();
                 }
             });
-            
             loadSegments();
         }
 
@@ -741,8 +452,7 @@
 
         function getSegmentSizeDisplay() {
             const select = document.getElementById('segmentSizeSelect');
-            const size = parseInt(select.value);
-            return formatSize(size);
+            return formatSize(parseInt(select.value));
         }
 
         function updateSegmentSizeDisplay() {
@@ -753,7 +463,6 @@
             const select = document.getElementById('segmentSizeSelect');
             const size = parseInt(select.value);
             updateSegmentSizeDisplay();
-            
             try {
                 const response = await fetch('/settings/segment-size', {
                     method: 'POST',
@@ -761,12 +470,8 @@
                     body: JSON.stringify({ size: size })
                 });
                 const result = await response.json();
-                if (result.success) {
-                    showStatus('✅ Segment size: ' + formatSize(result.segment_size), 'success');
-                }
-            } catch (e) {
-                console.error('Error updating segment size:', e);
-            }
+                if (result.success) showStatus('✅ Segment size: ' + formatSize(result.segment_size), 'success');
+            } catch (e) { console.error('Error updating segment size:', e); }
         }
 
         async function loadSegmentSize() {
@@ -777,17 +482,14 @@
                     const select = document.getElementById('segmentSizeSelect');
                     let bestOption = select.options[0];
                     for (const option of select.options) {
-                        if (Math.abs(parseInt(option.value) - result.segment_size) < 
-                            Math.abs(parseInt(bestOption.value) - result.segment_size)) {
+                        if (Math.abs(parseInt(option.value) - result.segment_size) < Math.abs(parseInt(bestOption.value) - result.segment_size)) {
                             bestOption = option;
                         }
                     }
                     bestOption.selected = true;
                     updateSegmentSizeDisplay();
                 }
-            } catch (e) {
-                console.error('Error loading segment size:', e);
-            }
+            } catch (e) { console.error('Error loading segment size:', e); }
         }
 
         // ============================================================
@@ -799,7 +501,6 @@
             const decryptBtn = document.getElementById('modeDecrypt');
             const actionBtn = document.getElementById('actionBtn');
             const hint = document.getElementById('inputHint');
-            
             if (mode === 'encrypt') {
                 encryptBtn.className = 'btn btn-sm btn-active';
                 decryptBtn.className = 'btn btn-sm btn-outline';
@@ -831,12 +532,10 @@
                 tag.title = TECH_NAMES[name];
                 tag.draggable = true;
                 tag.dataset.name = name;
-                
                 tag.addEventListener('dragstart', handleDragStart);
                 tag.addEventListener('dragover', handleDragOver);
                 tag.addEventListener('drop', handleDrop);
                 tag.addEventListener('dragend', handleDragEnd);
-                
                 container.appendChild(tag);
             });
             document.getElementById('orderDisplay').textContent = currentOrder.join(' → ');
@@ -844,17 +543,8 @@
         }
 
         let draggedItem = null;
-
-        function handleDragStart(e) {
-            draggedItem = this;
-            e.dataTransfer.effectAllowed = 'move';
-        }
-
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-        }
-
+        function handleDragStart(e) { draggedItem = this; e.dataTransfer.effectAllowed = 'move'; }
+        function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
         function handleDrop(e) {
             e.preventDefault();
             if (draggedItem && draggedItem !== this) {
@@ -867,7 +557,6 @@
                 }
             }
         }
-
         function handleDragEnd(e) { draggedItem = null; }
 
         function removeTechnique(name) {
@@ -878,9 +567,7 @@
             currentOrder = currentOrder.filter(n => n !== name);
             renderOrder();
         }
-
         function resetOrder() { currentOrder = [...ALL_TECH]; renderOrder(); }
-        
         function shuffleOrder() {
             for (let i = currentOrder.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -888,7 +575,6 @@
             }
             renderOrder();
         }
-
         function toggleAllTech() {
             if (currentOrder.length === ALL_TECH.length) {
                 currentOrder = [currentOrder[0]];
@@ -897,7 +583,6 @@
             }
             renderOrder();
         }
-
         function updateTechCount() {
             document.getElementById('techCount').textContent = `${currentOrder.length}/${ALL_TECH.length}`;
         }
@@ -1009,11 +694,8 @@
             const fileInput = document.getElementById('fileInput');
             const file = fileInput.files[0];
             if (!file) return;
-            
-            uploadedFileName = file.name;
             document.getElementById('uploadedFileName').textContent = '📎 ' + file.name;
             document.getElementById('fileBadge').style.display = 'inline';
-            
             const reader = new FileReader();
             reader.onload = function(e) {
                 const content = e.target.result;
@@ -1065,9 +747,6 @@
             }
         }
 
-        // ============================================================
-        // TABS
-        // ============================================================
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -1075,9 +754,6 @@
             document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
         }
 
-        // ============================================================
-        // COPY
-        // ============================================================
         function copyOutput() {
             const activeTab = document.querySelector('.tab-content.active');
             const text = activeTab ? activeTab.querySelector('.output-box').textContent : '';
@@ -1095,9 +771,6 @@
             }
         }
 
-        // ============================================================
-        // INPUT HELPERS
-        // ============================================================
         function loadSample() {
             if (currentMode === 'encrypt') {
                 document.getElementById('inputText').value = 'Hello World! This is SPC Encryption system by Mr.MR';
@@ -1140,73 +813,41 @@
         async function encrypt() {
             const text = document.getElementById('inputText').value;
             const seed = document.getElementById('seedInput').value;
-            
-            if (!text) {
-                showStatus('⚠️ Vui lòng nhập dữ liệu hoặc tải file!', 'error');
-                return;
-            }
-            
-            if (!currentSessionId) {
-                await createNewSession();
-            }
-            
+            if (!text) { showStatus('⚠️ Vui lòng nhập dữ liệu!', 'error'); return; }
+            if (!currentSessionId) await createNewSession();
             showStatus('⏳ Đang mã hóa với ' + currentOrder.length + ' kỹ thuật...', 'info');
-            
             try {
                 const response = await fetch('/encrypt', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        text: text,
-                        seed: seed,
-                        order: currentOrder
-                    })
+                    body: JSON.stringify({ text: text, seed: seed, order: currentOrder })
                 });
-                
                 const result = await response.json();
-                
-                if (!result.success) {
-                    showStatus('❌ ' + result.error, 'error');
-                    return;
-                }
-                
+                if (!result.success) { showStatus('❌ ' + result.error, 'error'); return; }
                 lastResult = result;
-                
                 document.getElementById('outputB64').textContent = result.encrypted_b64;
                 document.getElementById('outputHex').textContent = result.encrypted_hex;
                 document.getElementById('outputPlain').textContent = text;
                 document.getElementById('seedDisplay').textContent = result.seed;
-                
                 const saoyutDisplay = document.getElementById('saoyutDisplay');
                 saoyutDisplay.textContent = JSON.stringify(result.saoyut, null, 2);
                 saoyutDisplay.style.color = '#00ff88';
-                
                 document.getElementById('saoyutInput').value = JSON.stringify(result.saoyut, null, 2);
                 updateSaoyutStatus('✅ Đã sinh', 'success');
-                
                 document.getElementById('compareCard').style.display = 'none';
-                
-                // Cập nhật session từ kết quả
                 if (result.session_id) {
                     currentSessionId = result.session_id;
                     updateSessionDisplay(currentSessionId);
                     startSessionTimer();
                 }
-                
-                // Kiểm tra có kỹ thuật L không
                 let hasL = false;
                 for (const tech of result.saoyut.techniques) {
-                    if (tech.name === 'L') {
-                        hasL = true;
-                        break;
-                    }
+                    if (tech.name === 'L') { hasL = true; break; }
                 }
-                
                 if (hasL) {
                     showStatus('📦 Kỹ thuật L phát hiện! Segments đã được tạo.', 'info');
-                    loadSegments();
+                    setTimeout(() => loadSegments(), 500);
                 }
-                
                 showStatus('✅ Mã hóa thành công! ' + currentOrder.length + ' kỹ thuật đã áp dụng.', 'success');
             } catch (e) {
                 showStatus('❌ Lỗi: ' + e.message, 'error');
@@ -1219,25 +860,11 @@
         async function decrypt() {
             const input = document.getElementById('inputText').value.trim();
             const seed = document.getElementById('seedInput').value;
-            
-            if (!input) {
-                showStatus('⚠️ Vui lòng nhập Base64 hoặc tải file .spc!', 'error');
-                return;
-            }
-            
-            if (!seed) {
-                showStatus('⚠️ Vui lòng nhập seed!', 'error');
-                return;
-            }
-            
+            if (!input) { showStatus('⚠️ Vui lòng nhập Base64!', 'error'); return; }
+            if (!seed) { showStatus('⚠️ Vui lòng nhập seed!', 'error'); return; }
             const saoyut = getSAOYUT();
-            if (!saoyut) {
-                showStatus('⚠️ Vui lòng nhập SAOYUT hợp lệ!', 'error');
-                return;
-            }
-            
+            if (!saoyut) { showStatus('⚠️ Vui lòng nhập SAOYUT!', 'error'); return; }
             showStatus('⏳ Đang giải mã với ' + currentOrder.length + ' kỹ thuật...', 'info');
-            
             try {
                 const response = await fetch('/decrypt', {
                     method: 'POST',
@@ -1249,47 +876,33 @@
                         order: currentOrder
                     })
                 });
-                
                 const result = await response.json();
-                
                 if (!result.success) {
                     showStatus('❌ ' + result.error, 'error');
-                    if (result.hint) {
-                        showStatus('💡 ' + result.hint, 'warning');
-                    }
+                    if (result.hint) showStatus('💡 ' + result.hint, 'warning');
                     return;
                 }
-                
                 document.getElementById('outputPlain').textContent = result.decrypted_text;
                 document.getElementById('outputB64').textContent = input;
                 document.getElementById('seedDisplay').textContent = seed;
-                
                 const saoyutDisplay = document.getElementById('saoyutDisplay');
                 saoyutDisplay.textContent = JSON.stringify(saoyut, null, 2);
                 saoyutDisplay.style.color = '#f39c12';
-                
                 document.getElementById('originalText').innerHTML = 
-                    `<span style="color:#888;font-size:11px;">📦 Base64 (input)</span><br>` +
-                    `${input.substring(0, 60)}${input.length > 60 ? '...' : ''}`;
+                    `<span style="color:#888;font-size:11px;">📦 Base64 (input)</span><br>${input.substring(0, 60)}${input.length > 60 ? '...' : ''}`;
                 document.getElementById('originalText').style.color = '#f39c12';
-                
                 document.getElementById('decryptedText').innerHTML = 
-                    `<span style="color:#888;font-size:11px;">📝 Plaintext (output)</span><br>` +
-                    `${result.decrypted_text}`;
+                    `<span style="color:#888;font-size:11px;">📝 Plaintext (output)</span><br>${result.decrypted_text}`;
                 document.getElementById('decryptedText').style.color = '#00ff88';
-                
                 document.getElementById('compareLabel1').textContent = '📦 Base64 (input)';
                 document.getElementById('compareLabel2').textContent = '📝 Plaintext (output)';
-                
                 const compareCard = document.getElementById('compareCard');
                 compareCard.style.display = 'block';
-                
                 const compareResult = document.getElementById('compareResult');
                 compareResult.innerHTML = '✅ GIẢI MÃ THÀNH CÔNG! 🎉';
                 compareResult.style.color = '#00ff88';
                 compareResult.style.fontSize = '20px';
-                
-                showStatus('✅ Giải mã thành công với ' + currentOrder.length + ' kỹ thuật!', 'success');
+                showStatus('✅ Giải mã thành công!', 'success');
             } catch (e) {
                 showStatus('❌ Lỗi: ' + e.message, 'error');
             }
@@ -1304,111 +917,70 @@
                     '<div class="text-muted" style="padding:10px; text-align:center;">Chưa có phiên</div>';
                 return;
             }
-            
             try {
                 const response = await fetch(`/segments/list?session_id=${currentSessionId}`);
                 const result = await response.json();
-                
-                if (!result.success) {
-                    console.error('Failed to load segments:', result.error);
-                    return;
-                }
-                
                 const container = document.getElementById('segmentList');
                 const count = document.getElementById('segmentCount');
-                
-                if (result.count === 0) {
-                    container.innerHTML = '<div class="text-muted" style="padding:10px; text-align:center;">Chưa có segment nào cho phiên này</div>';
+                if (!result.success || result.count === 0) {
+                    container.innerHTML = '<div class="text-muted" style="padding:10px; text-align:center;">Chưa có segment nào</div>';
                     count.textContent = '0 segments';
-                    document.getElementById('segmentCard').style.display = 'none';
                     return;
                 }
-                
                 let html = '';
                 result.segments.forEach((seg) => {
                     const sizeKB = (seg.size / 1024).toFixed(2);
-                    html += `
-                        <div class="segment-item">
-                            <span>${seg.filename}</span>
-                            <span class="size">${sizeKB} KB</span>
-                        </div>
-                    `;
+                    html += `<div class="segment-item"><span>${seg.filename}</span><span class="size">${sizeKB} KB</span></div>`;
                 });
-                
                 container.innerHTML = html;
                 count.textContent = `${result.count} segments`;
-                document.getElementById('segmentCard').style.display = 'block';
-            } catch (e) {
-                console.error('Error loading segments:', e);
-            }
+            } catch (e) { console.error('Error loading segments:', e); }
         }
 
         async function downloadAllSegments() {
-            if (!currentSessionId) {
-                showStatus('⚠️ Cần có phiên để tải segments!', 'warning');
-                return;
-            }
-            
+            if (!currentSessionId) { showStatus('⚠️ Cần có phiên!', 'warning'); return; }
             const saoyutText = document.getElementById('saoyutDisplay').textContent;
-            if (!saoyutText || saoyutText === 'Chưa có...') {
-                showStatus('⚠️ Không có SAOYUT!', 'warning');
-                return;
-            }
-            
+            if (!saoyutText || saoyutText === 'Chưa có...') { showStatus('⚠️ Không có SAOYUT!', 'warning'); return; }
             try {
                 const saoyut = JSON.parse(saoyutText);
                 let numSegments = 0;
                 for (const tech of saoyut.techniques) {
-                    if (tech.name === 'L') {
-                        numSegments = tech.metadata.num_segments;
-                        break;
-                    }
+                    if (tech.name === 'L') { numSegments = tech.metadata.num_segments; break; }
                 }
-                
-                if (numSegments === 0) {
-                    showStatus('⚠️ Không tìm thấy kỹ thuật L!', 'warning');
-                    return;
-                }
-                
+                if (numSegments === 0) { showStatus('⚠️ Không tìm thấy kỹ thuật L!', 'warning'); return; }
                 showStatus('⏳ Đang tạo file zip...', 'info');
-                
                 const response = await fetch('/segments/download-all', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        session_id: currentSessionId,
-                        num_segments: numSegments 
-                    })
+                    body: JSON.stringify({ session_id: currentSessionId, num_segments: numSegments })
                 });
-                
                 if (!response.ok) {
                     const error = await response.json();
                     showStatus('❌ ' + (error.error || 'Lỗi tải segments'), 'error');
                     return;
                 }
-                
                 const blob = await response.blob();
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = `segments_${currentSessionId}.zip`;
                 link.click();
                 URL.revokeObjectURL(link.href);
-                
                 showStatus('✅ Đã tải xuống!', 'success');
-            } catch (e) {
-                showStatus('❌ Lỗi: ' + e.message, 'error');
-            }
+            } catch (e) { showStatus('❌ Lỗi: ' + e.message, 'error'); }
         }
 
         function uploadSegments() {
             if (!currentSessionId) {
-                showStatus('⚠️ Cần có phiên để upload segments!', 'warning');
+                showStatus('⚠️ Cần có phiên!', 'warning');
                 createNewSession();
                 return;
             }
             document.getElementById('segmentFileInput').click();
         }
 
+        // ============================================================
+        // UPLOAD SEGMENTS - ĐÃ SỬA LỖI 415
+        // ============================================================
         document.getElementById('segmentFileInput').addEventListener('change', async function(e) {
             const files = e.target.files;
             if (files.length === 0) return;
@@ -1418,6 +990,7 @@
             }
             
             const formData = new FormData();
+            // THÊM SESSION ID VÀO FORM DATA
             formData.append('session_id', currentSessionId);
             for (const file of files) {
                 formData.append('segments', file);
@@ -1428,7 +1001,7 @@
             try {
                 const response = await fetch(`/segments/upload?session_id=${currentSessionId}`, {
                     method: 'POST',
-                    body: formData
+                    body: formData  // Không có header Content-Type, browser tự set
                 });
                 
                 const result = await response.json();
@@ -1448,23 +1021,16 @@
 
         async function clearSegments() {
             if (!confirm('Xóa tất cả segments đã hết hạn?')) return;
-            
             try {
-                const response = await fetch('/segments/clear', {
-                    method: 'POST'
-                });
-                
+                const response = await fetch('/segments/clear', { method: 'POST' });
                 const result = await response.json();
-                
                 if (result.success) {
                     showStatus('✅ Đã xóa segments hết hạn!', 'success');
                     loadSegments();
                 } else {
                     showStatus('❌ ' + result.error, 'error');
                 }
-            } catch (e) {
-                showStatus('❌ Lỗi: ' + e.message, 'error');
-            }
+            } catch (e) { showStatus('❌ Lỗi: ' + e.message, 'error'); }
         }
 
         // ============================================================
