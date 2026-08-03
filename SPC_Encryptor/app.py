@@ -1,4 +1,4 @@
-# app.py - SPC Encryptor Pro v2.3 (Session ID cho Segment)
+# app.py - SPC Encryptor Pro v2.4.1 (Sửa lỗi 415)
 from flask import Flask, render_template, request, jsonify, send_file
 import hashlib
 import os
@@ -9,19 +9,112 @@ import traceback
 import zipfile
 import io
 import time
-import uuid
+import threading
 from werkzeug.utils import secure_filename
+from functools import wraps
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
+# ============================================================
+# CẤU HÌNH
+# ============================================================
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['DOWNLOAD_FOLDER'] = 'downloads'
 app.config['SEGMENT_FOLDER'] = 'segments'
-app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB
-app.config['DEFAULT_SEGMENT_SIZE'] = 1024 * 1024  # 1MB
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
+app.config['DEFAULT_SEGMENT_SIZE'] = 1024 * 1024
+app.config['SESSION_TIMEOUT'] = 3600
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['DOWNLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['SEGMENT_FOLDER'], exist_ok=True)
+
+# ============================================================
+# SESSION MANAGER
+# ============================================================
+class SessionManager:
+    def __init__(self):
+        self.sessions = {}
+        self.timeout = app.config['SESSION_TIMEOUT']
+    
+    def create_session(self, fingerprint=''):
+        session_id = hashlib.md5(f"{time.time()}{random.randint(1, 999999)}".encode()).hexdigest()[:16]
+        self.sessions[session_id] = {
+            'created': time.time(),
+            'fingerprint': fingerprint,
+            'active': True
+        }
+        return session_id
+    
+    def get_session(self, session_id):
+        if session_id not in self.sessions:
+            return None
+        session_data = self.sessions[session_id]
+        if time.time() - session_data['created'] > self.timeout:
+            self.cleanup_session(session_id)
+            return None
+        return session_data
+    
+    def update_fingerprint(self, session_id, fingerprint):
+        if session_id in self.sessions:
+            self.sessions[session_id]['fingerprint'] = fingerprint
+            return True
+        return False
+    
+    def is_valid(self, session_id):
+        return self.get_session(session_id) is not None
+    
+    def cleanup_session(self, session_id):
+        if session_id in self.sessions:
+            segment_dir = app.config['SEGMENT_FOLDER']
+            for filename in os.listdir(segment_dir):
+                if filename.startswith(f'segment_{session_id}_'):
+                    try:
+                        os.remove(os.path.join(segment_dir, filename))
+                    except:
+                        pass
+            del self.sessions[session_id]
+    
+    def cleanup_expired(self):
+        now = time.time()
+        for session_id, data in list(self.sessions.items()):
+            if now - data['created'] > self.timeout:
+                self.cleanup_session(session_id)
+
+session_manager = SessionManager()
+
+# ============================================================
+# DECORATOR - ĐÃ SỬA LỖI 415
+# ============================================================
+def require_session(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Lấy session_id từ query string (GET) hoặc JSON body (POST)
+        session_id = request.args.get('session_id')
+        if not session_id and request.method == 'POST':
+            if request.json:
+                session_id = request.json.get('session_id')
+        
+        if not session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 401
+        
+        if not session_manager.is_valid(session_id):
+            return jsonify({'success': False, 'error': 'Invalid or expired session'}), 401
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ============================================================
+# CLEANUP JOB
+# ============================================================
+def cleanup_job():
+    while True:
+        time.sleep(1800)
+        session_manager.cleanup_expired()
+
+cleanup_thread = threading.Thread(target=cleanup_job, daemon=True)
+cleanup_thread.start()
 
 # ============================================================
 # SAOYUT MANAGER
@@ -47,7 +140,7 @@ class SAOYUT:
         return self.data
 
 # ============================================================
-# R - Header Removal
+# CÁC KỸ THUẬT (R, C, E, Z, S, H, D, B, P, L)
 # ============================================================
 def technique_R(data, saoyut, reverse=False):
     if not reverse:
@@ -67,9 +160,6 @@ def technique_R(data, saoyut, reverse=False):
         header = bytes.fromhex(meta["header"])
         return header + data
 
-# ============================================================
-# C - Cut & Swap
-# ============================================================
 def technique_C(data, saoyut, reverse=False):
     if not reverse:
         mid = len(data) // 2
@@ -90,9 +180,6 @@ def technique_C(data, saoyut, reverse=False):
         first = data[second_len:]
         return first + second
 
-# ============================================================
-# E - Enigma
-# ============================================================
 def technique_E(data, saoyut, reverse=False):
     key = saoyut.seed.encode()
     result = bytearray(len(data))
@@ -102,9 +189,6 @@ def technique_E(data, saoyut, reverse=False):
         saoyut.add_technique("E", {})
     return bytes(result)
 
-# ============================================================
-# Z - Zip Hiding
-# ============================================================
 def technique_Z(data, saoyut, reverse=False):
     if not reverse:
         fake = b"TXT_HEADER:"
@@ -120,9 +204,6 @@ def technique_Z(data, saoyut, reverse=False):
         fake_len = meta.get("fake_len", 11)
         return data[fake_len:]
 
-# ============================================================
-# S - Sharding
-# ============================================================
 def technique_S(data, saoyut, reverse=False):
     if not reverse:
         num_shards = 4
@@ -172,9 +253,6 @@ def technique_S(data, saoyut, reverse=False):
         
         return bytes(result)
 
-# ============================================================
-# H - Header Masking
-# ============================================================
 def technique_H(data, saoyut, reverse=False):
     if not reverse:
         key = bytes([random.randint(0, 255) for _ in range(16)])
@@ -193,9 +271,6 @@ def technique_H(data, saoyut, reverse=False):
             result[i] = data[i] ^ key[i % len(key)]
         return bytes(result)
 
-# ============================================================
-# D - Double Fake
-# ============================================================
 def technique_D(data, saoyut, reverse=False):
     if not reverse:
         fake1 = b"PK\x03\x04"
@@ -215,9 +290,6 @@ def technique_D(data, saoyut, reverse=False):
         total_fake_len = meta.get("total_fake_len", 12)
         return data[total_fake_len:]
 
-# ============================================================
-# B - Hashing Chain
-# ============================================================
 def technique_B(data, saoyut, reverse=False):
     password = saoyut.seed
     for _ in range(100):
@@ -233,22 +305,14 @@ def technique_B(data, saoyut, reverse=False):
         })
     return bytes(result)
 
-# ============================================================
-# P - RAM-only
-# ============================================================
 def technique_P(data, saoyut, reverse=False):
     if not reverse:
         saoyut.add_technique("P", {"ram_only": True})
     return data
 
-# ============================================================
-# L - Low Storage Sharefile (CÓ SESSION ID)
-# ============================================================
 def technique_L(data, saoyut, reverse=False):
     if not reverse:
-        # Tạo session ID duy nhất
-        session_id = hashlib.md5(f"{saoyut.seed}{time.time()}{random.randint(1, 999999)}".encode()).hexdigest()[:8]
-        
+        session_id = session_manager.create_session()
         segment_size = app.config['DEFAULT_SEGMENT_SIZE']
         segments = []
         segment_hashes = []
@@ -278,10 +342,16 @@ def technique_L(data, saoyut, reverse=False):
         if not meta:
             raise ValueError("Missing L metadata!")
         
+        session_id = meta.get("session_id", "")
+        if not session_id:
+            raise ValueError("Missing session_id in SAOYUT!")
+        
+        if not session_manager.is_valid(session_id):
+            raise ValueError(f"Session {session_id} expired or invalid!")
+        
         segment_sizes = meta.get("segment_sizes", [])
         segment_hashes = meta.get("segment_hashes", [])
         num_segments = meta.get("num_segments", 0)
-        session_id = meta.get("session_id", "")
         
         if not segment_sizes:
             return data
@@ -326,9 +396,6 @@ ALL_TECHNIQUES = {
     "L": technique_L
 }
 
-# ============================================================
-# SPC ENGINE
-# ============================================================
 def spc_encrypt_with_order(data, seed, technique_order):
     if not seed:
         seed = hashlib.sha256(os.urandom(32)).hexdigest()
@@ -362,13 +429,15 @@ def spc_decrypt_with_order(data, saoyut_data, seed, technique_order):
 # ============================================================
 
 @app.route('/segments/list', methods=['GET'])
+@require_session
 def list_segments():
     try:
+        session_id = request.args.get('session_id')
         segment_dir = app.config['SEGMENT_FOLDER']
         segments = []
         
         for filename in os.listdir(segment_dir):
-            if filename.startswith('segment_') and filename.endswith('.dat'):
+            if filename.startswith(f'segment_{session_id}_') and filename.endswith('.dat'):
                 filepath = os.path.join(segment_dir, filename)
                 segments.append({
                     'filename': filename,
@@ -387,8 +456,13 @@ def list_segments():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/segments/upload', methods=['POST'])
+@require_session
 def upload_segments():
     try:
+        session_id = request.args.get('session_id') or request.json.get('session_id') if request.json else None
+        if not session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        
         if 'segments' not in request.files:
             return jsonify({'success': False, 'error': 'No segments uploaded'}), 400
         
@@ -417,34 +491,37 @@ def upload_segments():
 @app.route('/segments/clear', methods=['POST'])
 def clear_segments():
     try:
-        segment_dir = app.config['SEGMENT_FOLDER']
-        for filename in os.listdir(segment_dir):
-            if filename.startswith('segment_') and filename.endswith('.dat'):
-                os.remove(os.path.join(segment_dir, filename))
-        
-        return jsonify({'success': True, 'message': 'All segments cleared'})
+        session_manager.cleanup_expired()
+        return jsonify({'success': True, 'message': 'Expired segments cleared'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/segments/download/<int:segment_id>', methods=['GET'])
+@require_session
 def download_segment(segment_id):
     try:
+        session_id = request.args.get('session_id')
         segment_dir = app.config['SEGMENT_FOLDER']
-        # Tìm file segment theo ID (có thể có session_id)
-        for filename in os.listdir(segment_dir):
-            if filename.endswith(f"_{segment_id}.dat"):
-                segment_path = os.path.join(segment_dir, filename)
-                return send_file(segment_path, as_attachment=True, download_name=filename)
-        return jsonify({'success': False, 'error': 'Segment not found'}), 404
+        filename = f"segment_{session_id}_{segment_id}.dat"
+        segment_path = os.path.join(segment_dir, filename)
+        
+        if not os.path.exists(segment_path):
+            return jsonify({'success': False, 'error': 'Segment not found'}), 404
+        
+        return send_file(segment_path, as_attachment=True, download_name=filename)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/segments/download-all', methods=['POST'])
+@require_session
 def download_all_segments():
     try:
         data = request.json
+        session_id = data.get('session_id')
         num_segments = data.get('num_segments', 0)
-        session_id = data.get('session_id', '')
+        
+        if not session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 400
         
         if num_segments == 0:
             return jsonify({'success': False, 'error': 'No segments specified'}), 400
@@ -452,26 +529,66 @@ def download_all_segments():
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             for i in range(num_segments):
-                if session_id:
-                    segment_path = os.path.join(app.config['SEGMENT_FOLDER'], f"segment_{session_id}_{i+1}.dat")
-                else:
-                    # Fallback: tìm bất kỳ segment nào có số thứ tự
-                    segment_path = None
-                    for filename in os.listdir(app.config['SEGMENT_FOLDER']):
-                        if filename.endswith(f"_{i+1}.dat"):
-                            segment_path = os.path.join(app.config['SEGMENT_FOLDER'], filename)
-                            break
-                
-                if segment_path and os.path.exists(segment_path):
+                segment_path = os.path.join(app.config['SEGMENT_FOLDER'], f"segment_{session_id}_{i+1}.dat")
+                if os.path.exists(segment_path):
                     zip_file.write(segment_path, f"segment_{i+1}.dat")
         
         zip_buffer.seek(0)
-        return send_file(zip_buffer, as_attachment=True, download_name="segments.zip")
+        return send_file(zip_buffer, as_attachment=True, download_name=f"segments_{session_id}.zip")
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================
-# FLASK ROUTES
+# SESSION API
+# ============================================================
+
+@app.route('/api/session/create', methods=['POST'])
+def create_session():
+    try:
+        session_id = session_manager.create_session()
+        return jsonify({
+            'success': True,
+            'session_id': session_id,
+            'timeout': app.config['SESSION_TIMEOUT']
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/session/verify', methods=['POST'])
+def verify_session():
+    try:
+        data = request.json
+        session_id = data.get('session_id')
+        if not session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        
+        is_valid = session_manager.is_valid(session_id)
+        return jsonify({
+            'success': True,
+            'valid': is_valid
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/fingerprint', methods=['POST'])
+def register_fingerprint():
+    try:
+        data = request.json
+        session_id = data.get('session_id')
+        fingerprint = data.get('fingerprint')
+        
+        if not session_id or not fingerprint:
+            return jsonify({'success': False, 'error': 'Missing data'}), 400
+        
+        if session_manager.update_fingerprint(session_id, fingerprint):
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Invalid session'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# ROUTES CHÍNH
 # ============================================================
 
 @app.route('/')
@@ -495,10 +612,12 @@ def encrypt():
         encrypted_b64 = base64.b64encode(result["data"]).decode('utf-8')
         encrypted_hex = result["data"].hex()
         
+        session_id = None
         segments_info = None
         for tech in result["saoyut"]["techniques"]:
             if tech["name"] == "L":
                 segments_info = tech["metadata"]
+                session_id = segments_info.get("session_id")
                 break
         
         return jsonify({
@@ -508,7 +627,8 @@ def encrypt():
             'seed': result["seed"],
             'saoyut': result["saoyut"],
             'order': technique_order,
-            'segments': segments_info
+            'segments': segments_info,
+            'session_id': session_id
         })
     except Exception as e:
         return jsonify({
