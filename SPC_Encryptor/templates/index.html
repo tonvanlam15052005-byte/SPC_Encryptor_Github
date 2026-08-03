@@ -231,6 +231,7 @@
         }
         .badge-success { background: rgba(0,255,136,0.2); color: #00ff88; }
         .badge-error { background: rgba(255,107,107,0.2); color: #ff6b6b; }
+        .badge-warning { background: rgba(243,156,18,0.2); color: #f39c12; }
         
         .compare-box {
             display: grid;
@@ -300,6 +301,16 @@
             outline: none;
             border-color: #00ff88;
         }
+        .session-info {
+            font-size: 12px;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        .session-info .label { color: #888; }
+        .session-info .value { color: #00ff88; }
     </style>
 </head>
 <body>
@@ -307,7 +318,7 @@
         <h1>🔐 SPC Encryptor Pro</h1>
         <p class="subtitle">
             10 kỹ thuật · Mã hóa file · Xuất nhập SAOYUT · 
-            <span class="highlight">v2.2</span>
+            <span class="highlight">v2.4</span>
         </p>
 
         <div class="row">
@@ -325,6 +336,23 @@
                     </div>
                     <div class="input-hint" id="inputHint">
                         💡 Nhập <span class="highlight">văn bản</span> hoặc <span class="highlight">tải file lên</span> để mã hóa
+                    </div>
+                </div>
+
+                <!-- Session Info -->
+                <div class="card" id="sessionCard">
+                    <div class="card-title">
+                        🔐 Phiên bảo mật
+                        <span class="badge" id="sessionStatus">Chưa có phiên</span>
+                    </div>
+                    <div class="session-info">
+                        <div><span class="label">Session ID:</span> <span class="value" id="sessionDisplay">Chưa tạo</span></div>
+                        <div class="mt-10"><span class="label">Thiết bị (Fingerprint):</span> <span class="value" id="fingerprintDisplay" style="color:#888;">Chưa đăng ký</span></div>
+                        <div class="mt-10"><span class="label">Thời gian còn lại:</span> <span class="value" id="sessionTimer" style="color:#f39c12;">--:--</span></div>
+                    </div>
+                    <div class="flex mt-10">
+                        <button class="btn btn-sm btn-outline" onclick="createNewSession()">🔄 Tạo phiên mới</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="clearSession()">🗑️ Xóa phiên</button>
                     </div>
                 </div>
 
@@ -418,9 +446,9 @@
                     <div class="card-title">
                         📦 SEGMENT MANAGER
                         <span class="badge" id="segmentCount">0 segments</span>
+                        <span class="badge" id="sessionBadge" style="display:none;">🔒</span>
                     </div>
                     
-                    <!-- THÊM DROPDOWN CHỌN SEGMENT SIZE -->
                     <div class="flex mt-10 mb-10">
                         <span style="color:#888; font-size:12px;">Kích thước segment:</span>
                         <select id="segmentSizeSelect" class="segment-size-select" onchange="updateSegmentSize()">
@@ -523,8 +551,149 @@
         let currentOrder = [...ALL_TECH];
         let currentMode = 'encrypt';
         let lastResult = null;
-        let uploadedFile = null;
-        let uploadedFileName = '';
+        let currentSessionId = null;
+        let sessionTimerInterval = null;
+        let sessionTimeout = 3600;
+
+        // ============================================================
+        // FINGERPRINT
+        // ============================================================
+        function getDeviceFingerprint() {
+            const components = [
+                navigator.userAgent,
+                screen.width + 'x' + screen.height,
+                navigator.language,
+                new Date().getTimezoneOffset()
+            ];
+            
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 200;
+                canvas.height = 50;
+                const ctx = canvas.getContext('2d');
+                ctx.textBaseline = 'top';
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#f60';
+                ctx.fillRect(125, 1, 62, 20);
+                ctx.fillStyle = '#069';
+                ctx.fillText('SPC Encryptor', 2, 15);
+                ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+                ctx.fillText('v2.4', 4, 30);
+                const b64 = canvas.toDataURL();
+                components.push(b64);
+            } catch(e) {}
+            
+            const combined = components.join('|||');
+            return btoa(combined).substring(0, 64);
+        }
+
+        // ============================================================
+        // SESSION MANAGEMENT
+        // ============================================================
+        async function createNewSession() {
+            try {
+                const response = await fetch('/api/session/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentSessionId = result.session_id;
+                    sessionTimeout = result.timeout || 3600;
+                    updateSessionDisplay(currentSessionId);
+                    await registerFingerprint(currentSessionId);
+                    showStatus('✅ Phiên mới đã được tạo!', 'success');
+                    loadSegments();
+                    startSessionTimer();
+                } else {
+                    showStatus('❌ ' + result.error, 'error');
+                }
+            } catch (e) {
+                showStatus('❌ Lỗi: ' + e.message, 'error');
+            }
+        }
+
+        async function registerFingerprint(sessionId) {
+            const fingerprint = getDeviceFingerprint();
+            document.getElementById('fingerprintDisplay').textContent = fingerprint.substring(0, 16) + '...';
+            
+            try {
+                const response = await fetch('/api/fingerprint', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId, fingerprint: fingerprint })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    console.log('Fingerprint registered');
+                }
+            } catch(e) {
+                console.error('Failed to register fingerprint:', e);
+            }
+        }
+
+        function updateSessionDisplay(sessionId) {
+            document.getElementById('sessionDisplay').textContent = sessionId || 'Chưa tạo';
+            document.getElementById('sessionStatus').textContent = sessionId ? '✅ Hoạt động' : '❌ Chưa có phiên';
+            document.getElementById('sessionStatus').className = 'badge' + (sessionId ? ' badge-success' : '');
+            
+            if (sessionId) {
+                document.getElementById('sessionBadge').style.display = 'inline';
+                document.getElementById('sessionBadge').textContent = '🔒 ' + sessionId.substring(0, 8);
+            } else {
+                document.getElementById('sessionBadge').style.display = 'none';
+            }
+        }
+
+        function startSessionTimer() {
+            if (sessionTimerInterval) {
+                clearInterval(sessionTimerInterval);
+            }
+            
+            let remaining = sessionTimeout;
+            updateTimerDisplay(remaining);
+            
+            sessionTimerInterval = setInterval(() => {
+                remaining--;
+                updateTimerDisplay(remaining);
+                if (remaining <= 0) {
+                    clearInterval(sessionTimerInterval);
+                    showStatus('⏰ Phiên đã hết hạn! Tạo phiên mới.', 'warning');
+                    updateSessionDisplay(null);
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('sessionTimer').textContent = 
+                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            if (seconds < 300) {
+                document.getElementById('sessionTimer').style.color = '#ff6b6b';
+            } else if (seconds < 600) {
+                document.getElementById('sessionTimer').style.color = '#f39c12';
+            } else {
+                document.getElementById('sessionTimer').style.color = '#00ff88';
+            }
+        }
+
+        function clearSession() {
+            if (sessionTimerInterval) {
+                clearInterval(sessionTimerInterval);
+            }
+            currentSessionId = null;
+            updateSessionDisplay(null);
+            document.getElementById('fingerprintDisplay').textContent = 'Chưa đăng ký';
+            document.getElementById('sessionTimer').textContent = '--:--';
+            document.getElementById('segmentCard').style.display = 'none';
+            showStatus('🗑️ Phiên đã bị xóa', 'info');
+        }
+
+        function getSessionIdForAPI() {
+            return currentSessionId || '';
+        }
 
         // ============================================================
         // INIT
@@ -535,6 +704,8 @@
             setMode('encrypt');
             updateTechCount();
             loadSegmentSize();
+            
+            setTimeout(createNewSession, 500);
             
             document.getElementById('fileInput').addEventListener('change', handleFileUpload);
             
@@ -604,7 +775,6 @@
                 const result = await response.json();
                 if (result.success) {
                     const select = document.getElementById('segmentSizeSelect');
-                    // Tìm option gần nhất với giá trị hiện tại
                     let bestOption = select.options[0];
                     for (const option of select.options) {
                         if (Math.abs(parseInt(option.value) - result.segment_size) < 
@@ -976,6 +1146,10 @@
                 return;
             }
             
+            if (!currentSessionId) {
+                await createNewSession();
+            }
+            
             showStatus('⏳ Đang mã hóa với ' + currentOrder.length + ' kỹ thuật...', 'info');
             
             try {
@@ -1012,6 +1186,14 @@
                 
                 document.getElementById('compareCard').style.display = 'none';
                 
+                // Cập nhật session từ kết quả
+                if (result.session_id) {
+                    currentSessionId = result.session_id;
+                    updateSessionDisplay(currentSessionId);
+                    startSessionTimer();
+                }
+                
+                // Kiểm tra có kỹ thuật L không
                 let hasL = false;
                 for (const tech of result.saoyut.techniques) {
                     if (tech.name === 'L') {
@@ -1117,8 +1299,14 @@
         // SEGMENT MANAGER
         // ============================================================
         async function loadSegments() {
+            if (!currentSessionId) {
+                document.getElementById('segmentList').innerHTML = 
+                    '<div class="text-muted" style="padding:10px; text-align:center;">Chưa có phiên</div>';
+                return;
+            }
+            
             try {
-                const response = await fetch('/segments/list');
+                const response = await fetch(`/segments/list?session_id=${currentSessionId}`);
                 const result = await response.json();
                 
                 if (!result.success) {
@@ -1130,7 +1318,7 @@
                 const count = document.getElementById('segmentCount');
                 
                 if (result.count === 0) {
-                    container.innerHTML = '<div class="text-muted" style="padding:10px; text-align:center;">Chưa có segment nào</div>';
+                    container.innerHTML = '<div class="text-muted" style="padding:10px; text-align:center;">Chưa có segment nào cho phiên này</div>';
                     count.textContent = '0 segments';
                     document.getElementById('segmentCard').style.display = 'none';
                     return;
@@ -1156,6 +1344,11 @@
         }
 
         async function downloadAllSegments() {
+            if (!currentSessionId) {
+                showStatus('⚠️ Cần có phiên để tải segments!', 'warning');
+                return;
+            }
+            
             const saoyutText = document.getElementById('saoyutDisplay').textContent;
             if (!saoyutText || saoyutText === 'Chưa có...') {
                 showStatus('⚠️ Không có SAOYUT!', 'warning');
@@ -1182,13 +1375,22 @@
                 const response = await fetch('/segments/download-all', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ num_segments: numSegments })
+                    body: JSON.stringify({ 
+                        session_id: currentSessionId,
+                        num_segments: numSegments 
+                    })
                 });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    showStatus('❌ ' + (error.error || 'Lỗi tải segments'), 'error');
+                    return;
+                }
                 
                 const blob = await response.blob();
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = 'segments.zip';
+                link.download = `segments_${currentSessionId}.zip`;
                 link.click();
                 URL.revokeObjectURL(link.href);
                 
@@ -1199,6 +1401,11 @@
         }
 
         function uploadSegments() {
+            if (!currentSessionId) {
+                showStatus('⚠️ Cần có phiên để upload segments!', 'warning');
+                createNewSession();
+                return;
+            }
             document.getElementById('segmentFileInput').click();
         }
 
@@ -1206,7 +1413,12 @@
             const files = e.target.files;
             if (files.length === 0) return;
             
+            if (!currentSessionId) {
+                await createNewSession();
+            }
+            
             const formData = new FormData();
+            formData.append('session_id', currentSessionId);
             for (const file of files) {
                 formData.append('segments', file);
             }
@@ -1214,7 +1426,7 @@
             showStatus('⏳ Đang upload segments...', 'info');
             
             try {
-                const response = await fetch('/segments/upload', {
+                const response = await fetch(`/segments/upload?session_id=${currentSessionId}`, {
                     method: 'POST',
                     body: formData
                 });
@@ -1235,7 +1447,7 @@
         });
 
         async function clearSegments() {
-            if (!confirm('Xóa tất cả segments?')) return;
+            if (!confirm('Xóa tất cả segments đã hết hạn?')) return;
             
             try {
                 const response = await fetch('/segments/clear', {
@@ -1245,7 +1457,7 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    showStatus('✅ Đã xóa segments!', 'success');
+                    showStatus('✅ Đã xóa segments hết hạn!', 'success');
                     loadSegments();
                 } else {
                     showStatus('❌ ' + result.error, 'error');
@@ -1256,7 +1468,7 @@
         }
 
         // ============================================================
-        // CLEAR
+        // CLEAR ALL
         // ============================================================
         function clearAll() {
             document.getElementById('inputText').value = '';
@@ -1292,8 +1504,6 @@
         // ============================================================
         document.addEventListener('DOMContentLoaded', init);
         document.getElementById('inputText').addEventListener('input', updateCharCount);
-        
-        // Cập nhật segment size display khi select thay đổi
         document.getElementById('segmentSizeSelect').addEventListener('change', updateSegmentSizeDisplay);
     </script>
 </body>
