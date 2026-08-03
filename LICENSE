@@ -1,6 +1,8 @@
 MIT License
 
-Copyright (c) 2026 Mr.Сунь Вэньлинь
+Copyright (c) 2026 SPC Encryptor Pro Team
+
+All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +21,39 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+ACKNOWLEDGMENTS AND CREDITS
+
+This project is the result of collaborative efforts from multiple contributors:
+
+Original Theory and Concept
+Minvokin Grabiel Xavier (Mr.MR) - Creator and founder of the SPC (Super Planet Crypting) theory
+
+Architecture Restoration and Reconstruction
+SGM (Simple Gray Modules) - System architecture analysis, restoration, and reconstruction
+KOT/CAT STUDIOS - System architecture analysis, restoration, and reconstruction
+
+Development and Optimization
+Open Source Community - Web implementation, optimization, and Vietnamese localization
+AI Tools - Code assistance, debugging support, and performance optimization
+
+Testing and Quality Assurance
+Testing Team - Real-world testing, bug detection, and issue reporting
+Idea Contributors - Innovation in restoration and optimization strategies
+Quality Monitors - Error verification and validation oversight
+
+
+SPECIAL NOTES
+
+This software is distributed for non-commercial, educational, and research purposes.
+All original credits to Mr.MR and the SPC theory must remain intact.
+Modifications and redistributions must retain this license and credit notices.
+AI tools were used as supplementary assistance only; all architectural and creative decisions were made by human contributors.
+
+
+VERSION INFORMATION
+
+Current Version: v2.2
+Release Date: August 3, 2026
+SPC Standard: SPC L R C E Z S H B D P A6+ (Optimized for web deployment)
