@@ -1,4 +1,4 @@
-# app.py - SPC Encryptor Pro v2.4.1 (Sửa lỗi 415)
+# app.py - SPC Encryptor Pro v2.4.2 (Sửa lỗi 415 upload)
 from flask import Flask, render_template, request, jsonify, send_file
 import hashlib
 import os
@@ -85,15 +85,20 @@ class SessionManager:
 session_manager = SessionManager()
 
 # ============================================================
-# DECORATOR - ĐÃ SỬA LỖI 415
+# DECORATOR - SỬA LỖI 415
 # ============================================================
 def require_session(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Lấy session_id từ query string (GET) hoặc JSON body (POST)
+        # Lấy session_id từ query string (GET) hoặc form data (POST)
         session_id = request.args.get('session_id')
+        
         if not session_id and request.method == 'POST':
-            if request.json:
+            # Ưu tiên lấy từ form data (cho upload segments)
+            if request.form:
+                session_id = request.form.get('session_id')
+            # Nếu không có form data, thử JSON
+            elif request.json:
                 session_id = request.json.get('session_id')
         
         if not session_id:
@@ -459,7 +464,7 @@ def list_segments():
 @require_session
 def upload_segments():
     try:
-        session_id = request.args.get('session_id') or request.json.get('session_id') if request.json else None
+        session_id = request.args.get('session_id') or request.form.get('session_id')
         if not session_id:
             return jsonify({'success': False, 'error': 'Session ID required'}), 400
         
