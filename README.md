@@ -205,7 +205,7 @@ Dự án được phân phối dưới giấy phép **MIT**. Xem file [LICENSE](
 
 ---
 
-## ⚠️ Tuyên bố miễn trách
+## ⚠️ Tuyên bố miễn trách nhiệm
 
 > **SPC Encryptor Pro được phát triển cho mục đích nghiên cứu và học tập. Tác giả không chịu trách nhiệm đối với bất kỳ thiệt hại nào phát sinh từ việc sử dụng phần mềm này. Hãy sử dụng một cách có trách nhiệm và tuân thủ pháp luật địa phương.**
 
