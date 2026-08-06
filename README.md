@@ -60,7 +60,7 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 
 ### 🛠️ Các tính năng khác
 
-- ✅ **Bộ ba bất khả xâm phạm**: Dữ liệu mã hóa + SAOYUT + Seed
+- ✅ **Bộ ba giải mã**: Dữ liệu mã hóa + SAOYUT + Seed
 - ✅ **SAOYUT Manager**: Xuất/nhập metadata dạng JSON
 - ✅ **Segment Manager**: Tải lên, tải xuống, xóa segments
 - ✅ **Kéo thả file**: Hỗ trợ .txt, .spc, .saoyut
