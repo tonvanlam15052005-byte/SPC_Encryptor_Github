@@ -1,4 +1,4 @@
-# app.py - SPC Encryptor Pro v2.4.3 (Sửa lỗi segments path)
+# app.py - SPC Encryptor Pro v2.5.0 (Thiết kế mới: Data ID + Session ID)
 from flask import Flask, render_template, request, jsonify, send_file
 import hashlib
 import os
@@ -17,7 +17,7 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 # ============================================================
-# CẤU HÌNH - DÙNG ĐƯỜNG DẪN TUYỆT ĐỐI
+# CẤU HÌNH
 # ============================================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -28,9 +28,7 @@ app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
 app.config['DEFAULT_SEGMENT_SIZE'] = 1024 * 1024
 app.config['SESSION_TIMEOUT'] = 3600
 
-# ============================================================
-# TẠO THƯ MỤC TỰ ĐỘNG
-# ============================================================
+# Tạo thư mục
 for folder in ['UPLOAD_FOLDER', 'DOWNLOAD_FOLDER', 'SEGMENT_FOLDER']:
     path = app.config[folder]
     if not os.path.exists(path):
@@ -39,8 +37,6 @@ for folder in ['UPLOAD_FOLDER', 'DOWNLOAD_FOLDER', 'SEGMENT_FOLDER']:
     else:
         print(f"[INIT] Folder exists: {path}")
 
-print(f"[INIT] BASE_DIR: {BASE_DIR}")
-
 # ============================================================
 # SESSION MANAGER
 # ============================================================
@@ -48,62 +44,76 @@ class SessionManager:
     def __init__(self):
         self.sessions = {}
         self.timeout = app.config['SESSION_TIMEOUT']
+        self._lock = threading.Lock()
     
     def create_session(self, fingerprint=''):
         session_id = hashlib.md5(f"{time.time()}{random.randint(1, 999999)}".encode()).hexdigest()[:16]
-        self.sessions[session_id] = {
-            'created': time.time(),
-            'fingerprint': fingerprint,
-            'active': True
-        }
+        with self._lock:
+            self.sessions[session_id] = {
+                'created': time.time(),
+                'fingerprint': fingerprint,
+                'active': True
+            }
         return session_id
     
     def get_session(self, session_id):
-        if session_id not in self.sessions:
-            return None
-        session_data = self.sessions[session_id]
-        if time.time() - session_data['created'] > self.timeout:
-            self.cleanup_session(session_id)
-            return None
-        return session_data
+        with self._lock:
+            if session_id not in self.sessions:
+                return None
+            session_data = self.sessions[session_id]
+            if time.time() - session_data['created'] > self.timeout:
+                self._cleanup_session(session_id)
+                return None
+            return session_data
     
     def update_fingerprint(self, session_id, fingerprint):
-        if session_id in self.sessions:
-            self.sessions[session_id]['fingerprint'] = fingerprint
-            return True
-        return False
+        with self._lock:
+            if session_id in self.sessions:
+                self.sessions[session_id]['fingerprint'] = fingerprint
+                return True
+            return False
     
     def is_valid(self, session_id):
         return self.get_session(session_id) is not None
     
-    def cleanup_session(self, session_id):
+    def _cleanup_session(self, session_id):
         if session_id in self.sessions:
             segment_dir = app.config['SEGMENT_FOLDER']
-            for filename in os.listdir(segment_dir):
-                if filename.startswith(f'segment_{session_id}_'):
-                    try:
-                        os.remove(os.path.join(segment_dir, filename))
-                        print(f"[CLEANUP] Removed segment: {filename}")
-                    except:
-                        pass
+            if os.path.exists(segment_dir):
+                for filename in os.listdir(segment_dir):
+                    if filename.endswith(f'_{session_id}.dat'):
+                        try:
+                            os.remove(os.path.join(segment_dir, filename))
+                            print(f"[CLEANUP] Removed segment: {filename}")
+                        except Exception as e:
+                            print(f"[CLEANUP] Error removing {filename}: {e}")
             del self.sessions[session_id]
+            print(f"[CLEANUP] Session {session_id} cleaned")
     
     def cleanup_expired(self):
         now = time.time()
-        for session_id, data in list(self.sessions.items()):
-            if now - data['created'] > self.timeout:
-                self.cleanup_session(session_id)
+        expired = []
+        with self._lock:
+            for session_id, data in list(self.sessions.items()):
+                if now - data['created'] > self.timeout:
+                    expired.append(session_id)
+        
+        for session_id in expired:
+            self._cleanup_session(session_id)
+    
+    def force_cleanup(self, session_id):
+        if session_id:
+            self._cleanup_session(session_id)
 
 session_manager = SessionManager()
 
 # ============================================================
-# DECORATOR - XÁC THỰC SESSION
+# DECORATOR
 # ============================================================
 def require_session(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         session_id = request.args.get('session_id')
-        
         if not session_id and request.method == 'POST':
             if request.form:
                 session_id = request.form.get('session_id')
@@ -111,10 +121,18 @@ def require_session(f):
                 session_id = request.json.get('session_id')
         
         if not session_id:
-            return jsonify({'success': False, 'error': 'Session ID required'}), 401
+            return jsonify({
+                'success': False, 
+                'error': 'Session ID required',
+                'code': 'SESSION_REQUIRED'
+            }), 401
         
         if not session_manager.is_valid(session_id):
-            return jsonify({'success': False, 'error': 'Invalid or expired session'}), 401
+            return jsonify({
+                'success': False, 
+                'error': 'Invalid or expired session',
+                'code': 'SESSION_INVALID'
+            }), 401
         
         return f(*args, **kwargs)
     return decorated_function
@@ -126,6 +144,7 @@ def cleanup_job():
     while True:
         time.sleep(1800)
         session_manager.cleanup_expired()
+        print("[CLEANUP] Cleanup job completed")
 
 cleanup_thread = threading.Thread(target=cleanup_job, daemon=True)
 cleanup_thread.start()
@@ -154,7 +173,7 @@ class SAOYUT:
         return self.data
 
 # ============================================================
-# CÁC KỸ THUẬT (R, C, E, Z, S, H, D, B, P, L)
+# CÁC KỸ THUẬT
 # ============================================================
 def technique_R(data, saoyut, reverse=False):
     if not reverse:
@@ -324,9 +343,13 @@ def technique_P(data, saoyut, reverse=False):
         saoyut.add_technique("P", {"ram_only": True})
     return data
 
+# ============================================================
+# KỸ THUẬT L - THIẾT KẾ MỚI
+# ============================================================
 def technique_L(data, saoyut, reverse=False):
     if not reverse:
-        session_id = session_manager.create_session()
+        # Tạo data_id (danh tính dữ liệu) - 32 ký tự hex
+        data_id = hashlib.sha256(f"{time.time()}{random.randint(1, 999999)}".encode()).hexdigest()[:32]
         segment_size = app.config['DEFAULT_SEGMENT_SIZE']
         segments = []
         segment_hashes = []
@@ -336,20 +359,37 @@ def technique_L(data, saoyut, reverse=False):
             segments.append(segment)
             segment_hashes.append(hashlib.sha256(segment).hexdigest())
         
+        # SAOYUT chỉ lưu data_id (danh tính dữ liệu)
         saoyut.add_technique("L", {
             "num_segments": len(segments),
             "segment_sizes": [len(s) for s in segments],
             "segment_hashes": segment_hashes,
             "segment_size": segment_size,
-            "session_id": session_id
+            "data_id": data_id
         })
         
+        # ===== SỬA: TẠO FILE SEGMENT VỚI SESSION ID TỪ CONTEXT =====
+        # Lấy browser_session_id từ context (nếu có)
+        browser_session_id = None
+        if 'browser_session_id' in saoyut.data:
+            browser_session_id = saoyut.data.get('browser_session_id')
+        
         segment_dir = app.config['SEGMENT_FOLDER']
+        os.makedirs(segment_dir, exist_ok=True)
+        
         for i, segment in enumerate(segments):
-            segment_path = os.path.join(segment_dir, f"segment_{session_id}_{i+1}.dat")
+            if browser_session_id:
+                # Tên file: segment_{data_id}_{browser_session_id}_{i+1}.dat
+                segment_path = os.path.join(segment_dir, f"segment_{data_id}_{browser_session_id}_{i+1}.dat")
+            else:
+                # Fallback: segment_{data_id}_{i+1}.dat
+                segment_path = os.path.join(segment_dir, f"segment_{data_id}_{i+1}.dat")
             with open(segment_path, 'wb') as f:
                 f.write(segment)
-            print(f"[DEBUG] Created segment: {segment_path}")
+            print(f"[DEBUG] Created segment: {os.path.basename(segment_path)}")
+        # ===========================================================
+        
+        print(f"[DEBUG] L technique created with data_id: {data_id}")
         
         return data
     else:
@@ -357,43 +397,11 @@ def technique_L(data, saoyut, reverse=False):
         if not meta:
             raise ValueError("Missing L metadata!")
         
-        session_id = meta.get("session_id", "")
-        if not session_id:
-            raise ValueError("Missing session_id in SAOYUT!")
+        data_id = meta.get("data_id", "")
+        if not data_id:
+            raise ValueError("Missing data_id in SAOYUT!")
         
-        if not session_manager.is_valid(session_id):
-            raise ValueError(f"Session {session_id} expired or invalid!")
-        
-        segment_sizes = meta.get("segment_sizes", [])
-        segment_hashes = meta.get("segment_hashes", [])
-        num_segments = meta.get("num_segments", 0)
-        
-        if not segment_sizes:
-            return data
-        
-        segment_dir = app.config['SEGMENT_FOLDER']
-        segments = []
-        
-        for i in range(num_segments):
-            segment_path = os.path.join(segment_dir, f"segment_{session_id}_{i+1}.dat")
-            if not os.path.exists(segment_path):
-                raise FileNotFoundError(f"Missing segment {i+1}: {segment_path}")
-            
-            with open(segment_path, 'rb') as f:
-                segment_data = f.read()
-            
-            expected_size = segment_sizes[i] if i < len(segment_sizes) else len(segment_data)
-            if len(segment_data) != expected_size:
-                raise ValueError(f"Segment {i+1} size mismatch")
-            
-            if i < len(segment_hashes):
-                computed_hash = hashlib.sha256(segment_data).hexdigest()
-                if computed_hash != segment_hashes[i]:
-                    raise ValueError(f"Segment {i+1} checksum mismatch!")
-            
-            segments.append(segment_data)
-        
-        return b''.join(segments)
+        return data
 
 # ============================================================
 # DANH SÁCH KỸ THUẬT
@@ -411,11 +419,14 @@ ALL_TECHNIQUES = {
     "L": technique_L
 }
 
-def spc_encrypt_with_order(data, seed, technique_order):
+def spc_encrypt_with_order(data, seed, technique_order, browser_session_id=None):
     if not seed:
         seed = hashlib.sha256(os.urandom(32)).hexdigest()
     
     saoyut = SAOYUT(seed)
+    # Lưu browser_session_id vào SAOYUT để kỹ thuật L dùng
+    saoyut.data['browser_session_id'] = browser_session_id
+    
     result = data
     
     for name in technique_order:
@@ -428,14 +439,48 @@ def spc_encrypt_with_order(data, seed, technique_order):
         "seed": seed
     }
 
-def spc_decrypt_with_order(data, saoyut_data, seed, technique_order):
+def spc_decrypt_with_order(data, saoyut_data, seed, technique_order, browser_session_id=None):
     saoyut = SAOYUT(seed)
     saoyut.data = saoyut_data
     result = data
     
     for name in reversed(technique_order):
-        if name in ALL_TECHNIQUES:
-            result = ALL_TECHNIQUES[name](result, saoyut, reverse=True)
+        if name == "L":
+            meta = saoyut.get_technique_by_name("L")
+            if meta:
+                data_id = meta.get("data_id", "")
+                if data_id and browser_session_id:
+                    segment_dir = app.config['SEGMENT_FOLDER']
+                    segment_sizes = meta.get("segment_sizes", [])
+                    segment_hashes = meta.get("segment_hashes", [])
+                    num_segments = meta.get("num_segments", 0)
+                    
+                    segments = []
+                    for i in range(num_segments):
+                        filename = f"segment_{data_id}_{browser_session_id}_{i+1}.dat"
+                        segment_path = os.path.join(segment_dir, filename)
+                        if not os.path.exists(segment_path):
+                            raise FileNotFoundError(f"Missing segment {i+1}: {filename}")
+                        
+                        with open(segment_path, 'rb') as f:
+                            segment_data = f.read()
+                        
+                        expected_size = segment_sizes[i] if i < len(segment_sizes) else len(segment_data)
+                        if len(segment_data) != expected_size:
+                            raise ValueError(f"Segment {i+1} size mismatch")
+                        
+                        if i < len(segment_hashes):
+                            computed_hash = hashlib.sha256(segment_data).hexdigest()
+                            if computed_hash != segment_hashes[i]:
+                                raise ValueError(f"Segment {i+1} checksum mismatch!")
+                        
+                        segments.append(segment_data)
+                    
+                    result = b''.join(segments)
+                    continue
+        else:
+            if name in ALL_TECHNIQUES:
+                result = ALL_TECHNIQUES[name](result, saoyut, reverse=True)
     
     return result
 
@@ -447,35 +492,27 @@ def spc_decrypt_with_order(data, saoyut_data, seed, technique_order):
 @require_session
 def list_segments():
     try:
-        session_id = request.args.get('session_id')
-        if not session_id:
-            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        browser_session_id = request.args.get('session_id')
+        data_id = request.args.get('data_id')
+        
+        if not data_id:
+            return jsonify({'success': False, 'error': 'data_id required'}), 400
         
         segment_dir = app.config['SEGMENT_FOLDER']
-        
-        # ===== SỬA: Hiển thị tất cả segment (không lọc theo session) =====
-        print(f"[DEBUG] list_segments - session_id: {session_id}")
-        print(f"[DEBUG] list_segments - segment_dir: {segment_dir}")
-        
         segments = []
         
         if os.path.exists(segment_dir):
-            all_files = os.listdir(segment_dir)
-            print(f"[DEBUG] list_segments - all files: {all_files}")
-            
-            for filename in all_files:
-                if filename.endswith('.dat'):
+            prefix = f"segment_{data_id}_{browser_session_id}_"
+            for filename in os.listdir(segment_dir):
+                if filename.startswith(prefix) and filename.endswith('.dat'):
                     filepath = os.path.join(segment_dir, filename)
                     segments.append({
                         'filename': filename,
                         'size': os.path.getsize(filepath),
                         'path': filepath
                     })
-                    print(f"[DEBUG] list_segments - found: {filename}")
         
         segments.sort(key=lambda x: x['filename'])
-        
-        print(f"[DEBUG] list_segments - total found: {len(segments)}")
         
         return jsonify({
             'success': True,
@@ -490,9 +527,16 @@ def list_segments():
 @require_session
 def upload_segments():
     try:
-        session_id = request.args.get('session_id') or request.form.get('session_id')
-        if not session_id:
+        browser_session_id = request.args.get('session_id') or request.form.get('session_id')
+        if not browser_session_id:
             return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        
+        if not session_manager.is_valid(browser_session_id):
+            return jsonify({
+                'success': False, 
+                'error': 'Session expired',
+                'code': 'SESSION_EXPIRED'
+            }), 401
         
         if 'segments' not in request.files:
             return jsonify({'success': False, 'error': 'No segments uploaded'}), 400
@@ -505,27 +549,126 @@ def upload_segments():
         os.makedirs(segment_dir, exist_ok=True)
         
         uploaded = []
+        data_ids = []
+        
         for file in files:
             if file.filename:
-                filename = secure_filename(file.filename)
-                # ===== SỬA: Lấy session_id từ tên file nếu có =====
-                # Nếu file có tên segment_xxx_1.dat, giữ nguyên tên
-                # Nếu không, thêm session_id vào tên
-                if not filename.startswith('segment_'):
-                    filename = f"segment_{session_id}_{filename}"
-                # ================================================
+                original_filename = secure_filename(file.filename)
+                parts = original_filename.replace('.dat', '').split('_')
+                
+                if len(parts) >= 2 and parts[0] == 'segment':
+                    data_id = parts[1]
+                else:
+                    return jsonify({
+                        'success': False,
+                        'error': f'Invalid filename: {original_filename}. Must be segment_{data_id}.dat',
+                        'hint': 'Please use segment files from the download'
+                    }), 400
+                
+                prefix = f"segment_{data_id}_{browser_session_id}_"
+                existing = [f for f in os.listdir(segment_dir) if f.startswith(prefix) and f.endswith('.dat')]
+                max_idx = 0
+                for f in existing:
+                    idx_part = f.replace('.dat', '').split('_')[-1]
+                    if idx_part.isdigit():
+                        max_idx = max(max_idx, int(idx_part))
+                index = max_idx + 1
+                
+                filename = f"segment_{data_id}_{browser_session_id}_{index}.dat"
                 filepath = os.path.join(segment_dir, filename)
+                
+                if os.path.exists(filepath):
+                    print(f"[DEBUG] File {filename} already exists")
+                    uploaded.append(filename)
+                    data_ids.append(data_id)
+                    continue
+                
                 file.save(filepath)
                 uploaded.append(filename)
+                data_ids.append(data_id)
                 print(f"[DEBUG] Uploaded segment: {filename}")
         
         return jsonify({
             'success': True,
             'uploaded': uploaded,
-            'count': len(uploaded)
+            'count': len(uploaded),
+            'data_id': data_ids[0] if data_ids else None
         })
     except Exception as e:
         print(f"[ERROR] upload_segments: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/segments/upload-zip', methods=['POST'])
+@require_session
+def upload_segments_zip():
+    try:
+        browser_session_id = request.args.get('session_id') or request.form.get('session_id')
+        if not browser_session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        
+        if not session_manager.is_valid(browser_session_id):
+            return jsonify({
+                'success': False, 
+                'error': 'Session expired',
+                'code': 'SESSION_EXPIRED'
+            }), 401
+        
+        if 'zip_file' not in request.files:
+            return jsonify({'success': False, 'error': 'No ZIP file uploaded'}), 400
+        
+        zip_file = request.files['zip_file']
+        if zip_file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        zip_data = zip_file.read()
+        zip_buffer = io.BytesIO(zip_data)
+        
+        segment_dir = app.config['SEGMENT_FOLDER']
+        os.makedirs(segment_dir, exist_ok=True)
+        
+        uploaded = []
+        data_ids = []
+        
+        with zipfile.ZipFile(zip_buffer, 'r') as zf:
+            for filename in zf.namelist():
+                if not filename.endswith('.dat'):
+                    continue
+                
+                file_data = zf.read(filename)
+                parts = filename.replace('.dat', '').split('_')
+                
+                if len(parts) >= 2 and parts[0] == 'segment':
+                    data_id = parts[1]
+                else:
+                    continue
+                
+                prefix = f"segment_{data_id}_{browser_session_id}_"
+                existing = [f for f in os.listdir(segment_dir) if f.startswith(prefix) and f.endswith('.dat')]
+                max_idx = 0
+                for f in existing:
+                    idx_part = f.replace('.dat', '').split('_')[-1]
+                    if idx_part.isdigit():
+                        max_idx = max(max_idx, int(idx_part))
+                index = max_idx + 1
+                
+                new_filename = f"segment_{data_id}_{browser_session_id}_{index}.dat"
+                filepath = os.path.join(segment_dir, new_filename)
+                
+                with open(filepath, 'wb') as f:
+                    f.write(file_data)
+                
+                uploaded.append(new_filename)
+                data_ids.append(data_id)
+                print(f"[DEBUG] Extracted segment: {filename} -> {new_filename}")
+        
+        return jsonify({
+            'success': True,
+            'uploaded': uploaded,
+            'count': len(uploaded),
+            'data_id': data_ids[0] if data_ids else None
+        })
+    except Exception as e:
+        print(f"[ERROR] upload_segments_zip: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/segments/clear', methods=['POST'])
@@ -540,15 +683,22 @@ def clear_segments():
 @require_session
 def download_segment(segment_id):
     try:
-        session_id = request.args.get('session_id')
+        browser_session_id = request.args.get('session_id')
+        if not browser_session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        
+        data_id = request.args.get('data_id')
+        if not data_id:
+            return jsonify({'success': False, 'error': 'data_id required'}), 400
+        
         segment_dir = app.config['SEGMENT_FOLDER']
-        filename = f"segment_{session_id}_{segment_id}.dat"
+        filename = f"segment_{data_id}_{browser_session_id}_{segment_id}.dat"
         segment_path = os.path.join(segment_dir, filename)
         
         if not os.path.exists(segment_path):
             return jsonify({'success': False, 'error': 'Segment not found'}), 404
         
-        return send_file(segment_path, as_attachment=True, download_name=filename)
+        return send_file(segment_path, as_attachment=True, download_name=f"segment_{data_id}.dat")
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -557,11 +707,12 @@ def download_segment(segment_id):
 def download_all_segments():
     try:
         data = request.json
-        session_id = data.get('session_id')
+        data_id = data.get('data_id')
         num_segments = data.get('num_segments', 0)
+        browser_session_id = data.get('session_id')
         
-        if not session_id:
-            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        if not data_id:
+            return jsonify({'success': False, 'error': 'data_id required'}), 400
         
         if num_segments == 0:
             return jsonify({'success': False, 'error': 'No segments specified'}), 400
@@ -569,13 +720,21 @@ def download_all_segments():
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             for i in range(num_segments):
-                segment_path = os.path.join(app.config['SEGMENT_FOLDER'], f"segment_{session_id}_{i+1}.dat")
+                if browser_session_id:
+                    segment_path = os.path.join(app.config['SEGMENT_FOLDER'], f"segment_{data_id}_{browser_session_id}_{i+1}.dat")
+                else:
+                    segment_path = os.path.join(app.config['SEGMENT_FOLDER'], f"segment_{data_id}_{i+1}.dat")
+                
                 if os.path.exists(segment_path):
-                    zip_file.write(segment_path, f"segment_{i+1}.dat")
+                    zip_file.write(segment_path, f"segment_{data_id}_{i+1}.dat")
+                    print(f"[DEBUG] Added to ZIP: segment_{data_id}_{i+1}.dat")
+                else:
+                    print(f"[WARN] Segment {i+1} not found")
         
         zip_buffer.seek(0)
-        return send_file(zip_buffer, as_attachment=True, download_name=f"segments_{session_id}.zip")
+        return send_file(zip_buffer, as_attachment=True, download_name=f"segments_{data_id}.zip")
     except Exception as e:
+        print(f"[ERROR] download_all_segments: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================
@@ -627,6 +786,19 @@ def register_fingerprint():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/session/clear', methods=['POST'])
+def clear_session():
+    try:
+        data = request.json
+        session_id = data.get('session_id')
+        if not session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        
+        session_manager.force_cleanup(session_id)
+        return jsonify({'success': True, 'message': 'Session cleared'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============================================================
 # ROUTES CHÍNH
 # ============================================================
@@ -642,22 +814,23 @@ def encrypt():
         text = data.get('text', '')
         seed = data.get('seed', '')
         technique_order = data.get('order', list(ALL_TECHNIQUES.keys()))
+        browser_session_id = data.get('session_id')
         
         if not text:
             return jsonify({'success': False, 'error': 'No text provided'}), 400
         
         text_bytes = text.encode('utf-8')
-        result = spc_encrypt_with_order(text_bytes, seed, technique_order)
+        result = spc_encrypt_with_order(text_bytes, seed, technique_order, browser_session_id)
         
         encrypted_b64 = base64.b64encode(result["data"]).decode('utf-8')
         encrypted_hex = result["data"].hex()
         
-        session_id = None
+        data_id = None
         segments_info = None
         for tech in result["saoyut"]["techniques"]:
             if tech["name"] == "L":
                 segments_info = tech["metadata"]
-                session_id = segments_info.get("session_id")
+                data_id = segments_info.get("data_id")
                 break
         
         return jsonify({
@@ -668,7 +841,7 @@ def encrypt():
             'saoyut': result["saoyut"],
             'order': technique_order,
             'segments': segments_info,
-            'session_id': session_id
+            'data_id': data_id
         })
     except Exception as e:
         return jsonify({
@@ -685,6 +858,7 @@ def decrypt():
         seed = data.get('seed', '')
         saoyut_data = data.get('saoyut', {})
         technique_order = data.get('order', list(ALL_TECHNIQUES.keys()))
+        browser_session_id = data.get('session_id')
         
         if not encrypted_b64:
             return jsonify({'success': False, 'error': 'No encrypted data provided'}), 400
@@ -698,7 +872,7 @@ def decrypt():
         encrypted_data = base64.b64decode(encrypted_b64)
         
         try:
-            decrypted = spc_decrypt_with_order(encrypted_data, saoyut_data, seed, technique_order)
+            decrypted = spc_decrypt_with_order(encrypted_data, saoyut_data, seed, technique_order, browser_session_id)
             decrypted_text = decrypted.decode('utf-8', errors='replace')
             
             return jsonify({
