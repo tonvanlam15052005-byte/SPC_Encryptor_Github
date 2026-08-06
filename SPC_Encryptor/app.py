@@ -1,4 +1,4 @@
-# app.py - SPC Encryptor Pro v2.4.2 (Sửa lỗi 415 upload)
+# app.py - SPC Encryptor Pro v2.4.3 (Sửa lỗi segments path)
 from flask import Flask, render_template, request, jsonify, send_file
 import hashlib
 import os
@@ -17,18 +17,29 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 # ============================================================
-# CẤU HÌNH
+# CẤU HÌNH - DÙNG ĐƯỜNG DẪN TUYỆT ĐỐI
 # ============================================================
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['DOWNLOAD_FOLDER'] = 'downloads'
-app.config['SEGMENT_FOLDER'] = 'segments'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'uploads')
+app.config['DOWNLOAD_FOLDER'] = os.path.join(BASE_DIR, 'downloads')
+app.config['SEGMENT_FOLDER'] = os.path.join(BASE_DIR, 'segments')
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
 app.config['DEFAULT_SEGMENT_SIZE'] = 1024 * 1024
 app.config['SESSION_TIMEOUT'] = 3600
 
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['DOWNLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['SEGMENT_FOLDER'], exist_ok=True)
+# ============================================================
+# TẠO THƯ MỤC TỰ ĐỘNG
+# ============================================================
+for folder in ['UPLOAD_FOLDER', 'DOWNLOAD_FOLDER', 'SEGMENT_FOLDER']:
+    path = app.config[folder]
+    if not os.path.exists(path):
+        os.makedirs(path)
+        print(f"[INIT] Created folder: {path}")
+    else:
+        print(f"[INIT] Folder exists: {path}")
+
+print(f"[INIT] BASE_DIR: {BASE_DIR}")
 
 # ============================================================
 # SESSION MANAGER
@@ -72,6 +83,7 @@ class SessionManager:
                 if filename.startswith(f'segment_{session_id}_'):
                     try:
                         os.remove(os.path.join(segment_dir, filename))
+                        print(f"[CLEANUP] Removed segment: {filename}")
                     except:
                         pass
             del self.sessions[session_id]
@@ -85,19 +97,16 @@ class SessionManager:
 session_manager = SessionManager()
 
 # ============================================================
-# DECORATOR - SỬA LỖI 415
+# DECORATOR - XÁC THỰC SESSION
 # ============================================================
 def require_session(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Lấy session_id từ query string (GET) hoặc form data (POST)
         session_id = request.args.get('session_id')
         
         if not session_id and request.method == 'POST':
-            # Ưu tiên lấy từ form data (cho upload segments)
             if request.form:
                 session_id = request.form.get('session_id')
-            # Nếu không có form data, thử JSON
             elif request.json:
                 session_id = request.json.get('session_id')
         
@@ -340,6 +349,7 @@ def technique_L(data, saoyut, reverse=False):
             segment_path = os.path.join(segment_dir, f"segment_{session_id}_{i+1}.dat")
             with open(segment_path, 'wb') as f:
                 f.write(segment)
+            print(f"[DEBUG] Created segment: {segment_path}")
         
         return data
     else:
@@ -438,19 +448,34 @@ def spc_decrypt_with_order(data, saoyut_data, seed, technique_order):
 def list_segments():
     try:
         session_id = request.args.get('session_id')
+        if not session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        
         segment_dir = app.config['SEGMENT_FOLDER']
+        
+        # ===== SỬA: Hiển thị tất cả segment (không lọc theo session) =====
+        print(f"[DEBUG] list_segments - session_id: {session_id}")
+        print(f"[DEBUG] list_segments - segment_dir: {segment_dir}")
+        
         segments = []
         
-        for filename in os.listdir(segment_dir):
-            if filename.startswith(f'segment_{session_id}_') and filename.endswith('.dat'):
-                filepath = os.path.join(segment_dir, filename)
-                segments.append({
-                    'filename': filename,
-                    'size': os.path.getsize(filepath),
-                    'path': filepath
-                })
+        if os.path.exists(segment_dir):
+            all_files = os.listdir(segment_dir)
+            print(f"[DEBUG] list_segments - all files: {all_files}")
+            
+            for filename in all_files:
+                if filename.endswith('.dat'):
+                    filepath = os.path.join(segment_dir, filename)
+                    segments.append({
+                        'filename': filename,
+                        'size': os.path.getsize(filepath),
+                        'path': filepath
+                    })
+                    print(f"[DEBUG] list_segments - found: {filename}")
         
         segments.sort(key=lambda x: x['filename'])
+        
+        print(f"[DEBUG] list_segments - total found: {len(segments)}")
         
         return jsonify({
             'success': True,
@@ -458,6 +483,7 @@ def list_segments():
             'count': len(segments)
         })
     except Exception as e:
+        print(f"[ERROR] list_segments: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/segments/upload', methods=['POST'])
@@ -476,14 +502,22 @@ def upload_segments():
             return jsonify({'success': False, 'error': 'No files provided'}), 400
         
         segment_dir = app.config['SEGMENT_FOLDER']
-        uploaded = []
+        os.makedirs(segment_dir, exist_ok=True)
         
+        uploaded = []
         for file in files:
             if file.filename:
                 filename = secure_filename(file.filename)
+                # ===== SỬA: Lấy session_id từ tên file nếu có =====
+                # Nếu file có tên segment_xxx_1.dat, giữ nguyên tên
+                # Nếu không, thêm session_id vào tên
+                if not filename.startswith('segment_'):
+                    filename = f"segment_{session_id}_{filename}"
+                # ================================================
                 filepath = os.path.join(segment_dir, filename)
                 file.save(filepath)
                 uploaded.append(filename)
+                print(f"[DEBUG] Uploaded segment: {filename}")
         
         return jsonify({
             'success': True,
@@ -491,6 +525,7 @@ def upload_segments():
             'count': len(uploaded)
         })
     except Exception as e:
+        print(f"[ERROR] upload_segments: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/segments/clear', methods=['POST'])
