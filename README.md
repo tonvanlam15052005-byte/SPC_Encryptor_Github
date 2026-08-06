@@ -1,11 +1,18 @@
+Bạn nói rất đúng! Không có hệ thống nào là "bất khả xâm phạm". Mình sẽ viết lại `README.md` với tư duy thực tế, minh bạch và chuyên nghiệp hơn.
+
+---
+
+## 📁 FILE `README.md` - CẬP NHẬT PHIÊN BẢN v2.5.1
+
+```markdown
 # 🔐 SPC Encryptor Pro
 
 **Hệ thống mã hóa đa tầng SPC - Hiện thực hóa lý thuyết Super Planet Crypting**
 
-![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
-![Flask Version](https://img.shields.io/badge/flask-2.3.3-green)
-![License](https://img.shields.io/badge/license-MIT-orange)
-![Version](https://img.shields.io/badge/version-2.2-red)
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://python.org)
+[![Flask Version](https://img.shields.io/badge/flask-2.3.3-green)](https://flask.palletsprojects.com)
+[![License](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
+[![Version](https://img.shields.io/badge/version-2.5.1-red)](https://github.com/tonvanlam15052005-byte/SPC_Encryptor_Github)
 
 ---
 
@@ -60,12 +67,62 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 
 ### 🛠️ Các tính năng khác
 
-- ✅ **Bộ ba giải mã**: Dữ liệu mã hóa + SAOYUT + Seed
+- ✅ **Ba yếu tố giải mã**: Dữ liệu mã hóa + SAOYUT + Seed
 - ✅ **SAOYUT Manager**: Xuất/nhập metadata dạng JSON
 - ✅ **Segment Manager**: Tải lên, tải xuống, xóa segments
 - ✅ **Kéo thả file**: Hỗ trợ .txt, .spc, .saoyut
 - ✅ **3 định dạng output**: Base64, Hex, Plaintext
 - ✅ **Giao diện trực quan**: Kéo thả sắp xếp kỹ thuật
+- ✅ **Segment Size tùy chỉnh**: 1KB → 100MB
+- ✅ **Data ID + Session**: Phân biệt dữ liệu và phiên làm việc
+
+---
+
+## 🔧 Cấu trúc hệ thống
+
+### Lưu đồ mã hóa
+
+```
+Plaintext → R → C → E → Z → S → H → D → B → P → L → Base64
+```
+
+### Lưu đồ giải mã
+
+```
+Base64 → L → P → B → D → H → S → Z → E → C → R → Plaintext
+```
+
+### Tên file Segment
+
+```
+segment_{data_id}_{browser_session_id}_{index}.dat
+```
+
+Trong đó:
+- `data_id`: Danh tính cố định của dữ liệu (32 ký tự hex)
+- `browser_session_id`: Phiên làm việc của trình duyệt (16 ký tự hex)
+- `index`: Số thứ tự của segment
+
+---
+
+## 🛡️ Bảo mật và Lưu ý
+
+### Cơ chế bảo vệ
+
+| Biện pháp | Mô tả |
+|-----------|-------|
+| **Seed** | Khóa chính do người dùng tự tạo, không lưu trên server |
+| **SAOYUT** | Metadata được mã hóa 5 bước, chỉ người dùng có |
+| **Session** | Phiên tự động hết hạn sau 1 giờ |
+| **Segment TTL** | Segment tự động xóa sau 1 giờ |
+| **Fingerprint** | Gắn segment với thiết bị tạo ra nó |
+
+### ⚠️ Lưu ý quan trọng
+
+1. **Không có hệ thống nào là tuyệt đối an toàn**. SPC Encryptor Pro được phát triển cho mục đích nghiên cứu và học tập.
+2. **SAOYUT và Seed là chìa khóa**. Mất SAOYUT hoặc Seed = mất dữ liệu vĩnh viễn.
+3. **Segment có thời gian sống giới hạn** (1 giờ). Hãy tải về và lưu trữ cẩn thận.
+4. **Sử dụng có trách nhiệm**. Tuân thủ pháp luật địa phương về bảo mật và mã hóa.
 
 ---
 
@@ -81,13 +138,115 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 ```bash
 # 1. Clone repository
 git clone https://github.com/tonvanlam15052005-byte/SPC_Encryptor_Github.git
-cd SPC_Encryptor_Github/SPC_Encryptor
+cd SPC_Encryptor_Github
 
 # 2. Cài đặt dependencies
 pip install -r requirements.txt
 
 # 3. Chạy ứng dụng
 python app.py
+```
 
-# SPC_Encryptor_Github
-SPC_Encryptor_Github — это усовершенствованный веб-проект, созданный командой SGM (Simple Gray Modules) и студией KOT/CAT STUDIOS на основе кода шифрования, разработанного г-ном Минвокином Грабиэлем Ксавье (известным как г-н Ксавье или под псевдонимом Минвокин Граксав).
+### Truy cập
+
+Mở trình duyệt và truy cập: `http://localhost:5000`
+
+---
+
+## ☁️ Triển khai lên Render
+
+### Bước 1: Push lên GitHub
+
+```bash
+git add .
+git commit -m "SPC Encryptor Pro v2.5.1"
+git push
+```
+
+### Bước 2: Tạo Web Service trên Render
+
+1. Truy cập [render.com](https://render.com)
+2. Chọn **New Web Service**
+3. Kết nối với repository GitHub
+4. Điền thông tin:
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `gunicorn app:app`
+
+### Bước 3: Deploy
+
+Bấm **Deploy**. Render sẽ tự động build và chạy ứng dụng.
+
+---
+
+## 📁 Cấu trúc dự án
+
+```
+SPC_Encryptor/
+├── app.py                    # Flask server (10 kỹ thuật + Segment API)
+├── templates/
+│   └── index.html            # UI Web (Segment Manager, Kéo thả file)
+├── uploads/                  # File upload tạm
+├── downloads/                # File download
+├── segments/                 # Lưu segments: segment_{data_id}_{session}_{index}.dat
+├── requirements.txt          # Flask, Werkzeug
+├── LICENSE                   # Giấy phép MIT
+└── README.md                 # Tài liệu hướng dẫn
+```
+
+---
+
+## 👨‍💻 Tác giả
+
+| Vai trò | Tên |
+|---------|-----|
+| **Lý thuyết SPC** | Minvokin Grabiel Xavier (Mr.MR) |
+| **Phục dựng & Phát triển** | SGM (Simple Gray Modules) & KOT/CAT STUDIOS |
+| **Hiện thực hóa Web** | Cộng đồng mã nguồn mở |
+| **Ngày hoàn thành** | 06/08/2026 |
+
+---
+
+## 📜 Giấy phép
+
+Dự án được phân phối dưới giấy phép **MIT**. Xem file [LICENSE](LICENSE) để biết thêm chi tiết.
+
+---
+
+## ⚠️ Tuyên bố miễn trách
+
+> **SPC Encryptor Pro được phát triển cho mục đích nghiên cứu và học tập. Tác giả không chịu trách nhiệm đối với bất kỳ thiệt hại nào phát sinh từ việc sử dụng phần mềm này. Hãy sử dụng một cách có trách nhiệm và tuân thủ pháp luật địa phương.**
+
+---
+
+## 🌟 Đóng góp
+
+Mọi đóng góp đều được hoan nghênh! Hãy tạo **Issue** hoặc **Pull Request** để cải thiện dự án.
+
+---
+
+## 📧 Liên hệ
+
+- **GitHub**: [tonvanlam15052005-byte](https://github.com/tonvanlam15052005-byte)
+- **Dự án**: [SPC_Encryptor_Github](https://github.com/tonvanlam15052005-byte/SPC_Encryptor_Github)
+
+---
+
+**⭐ Star dự án này nếu bạn thấy nó hữu ích!**
+```
+
+---
+
+## ✅ TÓM TẮT THAY ĐỔI
+
+| Thay đổi | Mô tả |
+|----------|-------|
+| **Bỏ cụm từ "bất khả xâm phạm"** | Thay bằng "Ba yếu tố giải mã" |
+| **Cập nhật phiên bản** | v2.2 → v2.5.1 |
+| **Thêm Data ID + Session** | Giải thích cấu trúc tên file segment |
+| **Thêm Lưu ý bảo mật** | Cảnh báo thực tế về giới hạn của hệ thống |
+| **Thêm Segment Size** | Tính năng tùy chỉnh kích thước segment |
+| **Thêm Tuyên bố miễn trách** | Rõ ràng về mục đích sử dụng |
+
+---
+
+**Bạn có muốn tôi điều chỉnh thêm phần nào không?** 😄
