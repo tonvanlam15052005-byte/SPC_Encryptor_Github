@@ -1,10 +1,3 @@
-Bạn nói rất đúng! Không có hệ thống nào là "bất khả xâm phạm". Mình sẽ viết lại `README.md` với tư duy thực tế, minh bạch và chuyên nghiệp hơn.
-
----
-
-## 📁 FILE `README.md` - CẬP NHẬT PHIÊN BẢN v2.5.1
-
-```markdown
 # 🔐 SPC Encryptor Pro
 
 **Hệ thống mã hóa đa tầng SPC - Hiện thực hóa lý thuyết Super Planet Crypting**
@@ -232,21 +225,3 @@ Mọi đóng góp đều được hoan nghênh! Hãy tạo **Issue** hoặc **Pu
 ---
 
 **⭐ Star dự án này nếu bạn thấy nó hữu ích!**
-```
-
----
-
-## ✅ TÓM TẮT THAY ĐỔI
-
-| Thay đổi | Mô tả |
-|----------|-------|
-| **Bỏ cụm từ "bất khả xâm phạm"** | Thay bằng "Ba yếu tố giải mã" |
-| **Cập nhật phiên bản** | v2.2 → v2.5.1 |
-| **Thêm Data ID + Session** | Giải thích cấu trúc tên file segment |
-| **Thêm Lưu ý bảo mật** | Cảnh báo thực tế về giới hạn của hệ thống |
-| **Thêm Segment Size** | Tính năng tùy chỉnh kích thước segment |
-| **Thêm Tuyên bố miễn trách** | Rõ ràng về mục đích sử dụng |
-
----
-
-**Bạn có muốn tôi điều chỉnh thêm phần nào không?** 😄
