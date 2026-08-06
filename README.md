@@ -26,7 +26,7 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 
 ### Lý thuyết gốc: SPC (Super Planet Crypting)
 
-- **Tác giả**: Minvokin Grabiel Xavier (Mr.MR) - Mr.Минвокин Рабиэль
+- **Tác giả**: Minvokin Grabiel Xavier (Mr.MR) - Mr.Минвокин Рабиэль (Bí danh Mr.Минвокин Граксав)
 - **Cấu trúc**: 8 Hành tinh × 8 Tổ hợp × 8 Bước = **4.096 bước mã hóa tiềm năng**
 - **Triết lý**: "Mã hóa là nghệ thuật của sự phức tạp có kiểm soát"
 
