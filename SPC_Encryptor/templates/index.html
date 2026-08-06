@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>SPC Encryptor Pro</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -12,6 +12,9 @@
             color: #e0e0e0;
             min-height: 100vh;
             padding: 20px;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .container { max-width: 1400px; margin: 0 auto; }
         h1 { text-align: center; font-size: 2.5rem; color: #00ff88; text-shadow: 0 0 20px rgba(0,255,136,0.3); margin-bottom: 5px; }
@@ -47,16 +50,33 @@
         .mb-10 { margin-bottom: 10px; }
         .text-muted { color: #888; font-size: 13px; }
         
-        .technique-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0; }
-        .tech-tag { background: rgba(0,255,136,0.12); border: 1px solid rgba(0,255,136,0.25); border-radius: 16px; padding: 4px 12px; cursor: pointer; transition: all 0.3s; user-select: none; display: flex; align-items: center; gap: 6px; font-size: 13px; }
+        .technique-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0; min-height: 40px; }
+        .tech-tag {
+            background: rgba(0,255,136,0.12);
+            border: 1px solid rgba(0,255,136,0.25);
+            border-radius: 16px;
+            padding: 6px 14px;
+            cursor: grab;
+            transition: all 0.3s;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            touch-action: none;
+        }
+        .tech-tag:active { cursor: grabbing; }
         .tech-tag:hover { background: rgba(0,255,136,0.25); }
-        .tech-tag .remove { cursor: pointer; font-weight: bold; color: #ff6b6b; font-size: 14px; }
+        .tech-tag .remove { cursor: pointer; font-weight: bold; color: #ff6b6b; font-size: 14px; padding: 0 4px; }
         .tech-tag .remove:hover { color: #ff0000; }
+        .tech-tag.dragging { opacity: 0.3; }
+        .tech-tag.drag-over { border-color: #00ff88; border-width: 2px; background: rgba(0,255,136,0.2); }
+        .tech-tag.touch-drag { opacity: 0.5; transform: scale(0.95); }
         
         .output-box { background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; margin-top: 6px; max-height: 150px; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; border: 1px solid rgba(255,255,255,0.05); min-height: 40px; }
         .output-box.saoyut-box { max-height: 180px; font-size: 11px; }
         
-        .status { padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 14px; }
+        .status { padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 14px; white-space: pre-wrap; }
         .status.success { background: rgba(0,255,136,0.1); border: 1px solid #00ff88; color: #00ff88; }
         .status.error { background: rgba(255,107,107,0.1); border: 1px solid #ff6b6b; color: #ff6b6b; }
         .status.info { background: rgba(52,152,219,0.1); border: 1px solid #3498db; color: #3498db; }
@@ -76,7 +96,7 @@
         
         .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 5px; }
         .saoyut-section { border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; margin-top: 6px; background: rgba(0,0,0,0.15); }
-        .saoyut-section .saoyut-label { font-size: 12px; color: #888; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .saoyut-section .saoyut-label { font-size: 12px; color: #888; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
         
@@ -104,12 +124,26 @@
         .session-info { font-size: 12px; padding: 8px 12px; background: rgba(0,0,0,0.2); border-radius: 6px; font-family: monospace; word-break: break-all; }
         .session-info .label { color: #888; }
         .session-info .value { color: #00ff88; }
+        .touch-clone {
+            position: fixed !important;
+            pointer-events: none !important;
+            z-index: 9999 !important;
+            opacity: 0.85 !important;
+            transform: scale(1.05) !important;
+            box-shadow: 0 0 30px rgba(0,255,136,0.4) !important;
+            background: rgba(0,255,136,0.15) !important;
+            border: 2px solid #00ff88 !important;
+            border-radius: 20px !important;
+            padding: 6px 14px !important;
+            font-size: 13px !important;
+            color: #fff !important;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🔐 SPC Encryptor Pro</h1>
-        <p class="subtitle">10 kỹ thuật · Mã hóa file · Xuất nhập SAOYUT · <span class="highlight">v2.4.2</span></p>
+        <p class="subtitle">10 kỹ thuật · Mã hóa file · Xuất nhập SAOYUT · <span class="highlight">v2.4.3</span></p>
 
         <div class="row">
             <!-- ===== LEFT COLUMN ===== -->
@@ -193,7 +227,7 @@
 
                 <!-- Techniques -->
                 <div class="card">
-                    <div class="card-title">🔄 Kỹ thuật <span class="badge">Kéo thả</span> <span class="badge" id="techCount">0/10</span></div>
+                    <div class="card-title">🔄 Kỹ thuật <span class="badge">Chạm/kéo</span> <span class="badge" id="techCount">0/10</span></div>
                     <div class="technique-list" id="techniqueOrder"></div>
                     <div class="flex mt-10">
                         <button class="btn btn-sm btn-outline" onclick="resetOrder()">🔄 Reset</button>
@@ -230,6 +264,7 @@
                         <button class="btn btn-sm btn-outline" onclick="downloadAllSegments()">📥 Tải tất cả</button>
                         <button class="btn btn-sm btn-outline-danger" onclick="clearSegments()">🗑️ Xóa segments</button>
                         <button class="btn btn-sm btn-outline" onclick="loadSegments()">🔄 Làm mới</button>
+                        <button class="btn btn-sm btn-outline" onclick="checkSegmentStatus()">🔍 Kiểm tra</button>
                     </div>
                     <input type="file" id="segmentFileInput" style="display:none;" multiple accept=".dat">
                     <div class="mt-10 text-muted" style="font-size:11px; color:#666;">
@@ -300,33 +335,15 @@
         let sessionTimeout = 3600;
 
         // ============================================================
-        // FINGERPRINT
+        // FINGERPRINT (DÙNG LOCALSTORAGE)
         // ============================================================
         function getDeviceFingerprint() {
-            const components = [
-                navigator.userAgent,
-                screen.width + 'x' + screen.height,
-                navigator.language,
-                new Date().getTimezoneOffset()
-            ];
-            try {
-                const canvas = document.createElement('canvas');
-                canvas.width = 200;
-                canvas.height = 50;
-                const ctx = canvas.getContext('2d');
-                ctx.textBaseline = 'top';
-                ctx.font = '14px Arial';
-                ctx.fillStyle = '#f60';
-                ctx.fillRect(125, 1, 62, 20);
-                ctx.fillStyle = '#069';
-                ctx.fillText('SPC Encryptor', 2, 15);
-                ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
-                ctx.fillText('v2.4', 4, 30);
-                const b64 = canvas.toDataURL();
-                components.push(b64);
-            } catch(e) {}
-            const combined = components.join('|||');
-            return btoa(combined).substring(0, 64);
+            let deviceId = localStorage.getItem('spc_device_id');
+            if (!deviceId) {
+                deviceId = 'fp_' + Math.random().toString(36).substring(2, 10);
+                localStorage.setItem('spc_device_id', deviceId);
+            }
+            return deviceId;
         }
 
         // ============================================================
@@ -357,16 +374,14 @@
 
         async function registerFingerprint(sessionId) {
             const fingerprint = getDeviceFingerprint();
-            document.getElementById('fingerprintDisplay').textContent = fingerprint.substring(0, 16) + '...';
+            document.getElementById('fingerprintDisplay').textContent = fingerprint;
             try {
-                const response = await fetch('/api/fingerprint', {
+                await fetch('/api/fingerprint', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ session_id: sessionId, fingerprint: fingerprint })
                 });
-                const result = await response.json();
-                if (result.success) console.log('Fingerprint registered');
-            } catch(e) { console.error('Failed to register fingerprint:', e); }
+            } catch(e) { console.error('Fingerprint error:', e); }
         }
 
         function updateSessionDisplay(sessionId) {
@@ -520,8 +535,11 @@
         }
 
         // ============================================================
-        // TECHNIQUES
+        // TECHNIQUES - DRAG & DROP + TOUCH
         // ============================================================
+        let draggedItem = null;
+        let touchData = null;
+
         function renderOrder() {
             const container = document.getElementById('techniqueOrder');
             container.innerHTML = '';
@@ -532,22 +550,43 @@
                 tag.title = TECH_NAMES[name];
                 tag.draggable = true;
                 tag.dataset.name = name;
+                
+                // Mouse events
                 tag.addEventListener('dragstart', handleDragStart);
                 tag.addEventListener('dragover', handleDragOver);
                 tag.addEventListener('drop', handleDrop);
                 tag.addEventListener('dragend', handleDragEnd);
+                
+                // Touch events
+                tag.addEventListener('touchstart', handleTouchStart, { passive: true });
+                tag.addEventListener('touchmove', handleTouchMove, { passive: false });
+                tag.addEventListener('touchend', handleTouchEnd, { passive: true });
+                
                 container.appendChild(tag);
             });
             document.getElementById('orderDisplay').textContent = currentOrder.join(' → ');
             updateTechCount();
         }
 
-        let draggedItem = null;
-        function handleDragStart(e) { draggedItem = this; e.dataTransfer.effectAllowed = 'move'; }
-        function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+        // ----- MOUSE DRAG -----
+        function handleDragStart(e) {
+            draggedItem = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.name);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            document.querySelectorAll('.tech-tag').forEach(el => el.classList.remove('drag-over'));
+            if (this !== draggedItem) this.classList.add('drag-over');
+        }
+
         function handleDrop(e) {
             e.preventDefault();
-            if (draggedItem && draggedItem !== this) {
+            document.querySelectorAll('.tech-tag').forEach(el => el.classList.remove('drag-over'));
+            if (draggedItem && this !== draggedItem) {
                 const fromIdx = currentOrder.indexOf(draggedItem.dataset.name);
                 const toIdx = currentOrder.indexOf(this.dataset.name);
                 if (fromIdx > -1 && toIdx > -1) {
@@ -557,7 +596,79 @@
                 }
             }
         }
-        function handleDragEnd(e) { draggedItem = null; }
+
+        function handleDragEnd(e) {
+            document.querySelectorAll('.tech-tag').forEach(el => el.classList.remove('dragging', 'drag-over'));
+            draggedItem = null;
+        }
+
+        // ----- TOUCH DRAG (Mobile) -----
+        let touchClone = null;
+        let touchTarget = null;
+
+        function handleTouchStart(e) {
+            touchData = {
+                element: this,
+                name: this.dataset.name,
+                startX: e.touches[0].clientX,
+                startY: e.touches[0].clientY
+            };
+            this.classList.add('touch-drag');
+            
+            // Tạo clone
+            touchClone = this.cloneNode(true);
+            touchClone.className = 'tech-tag touch-clone';
+            touchClone.style.left = (e.touches[0].clientX - 30) + 'px';
+            touchClone.style.top = (e.touches[0].clientY - 15) + 'px';
+            document.body.appendChild(touchClone);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!touchClone || !touchData) return;
+            
+            const touch = e.touches[0];
+            touchClone.style.left = (touch.clientX - 30) + 'px';
+            touchClone.style.top = (touch.clientY - 15) + 'px';
+            
+            // Tìm tag bên dưới
+            const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+            const target = elements.find(el => el.classList && el.classList.contains('tech-tag') && el !== touchData.element);
+            
+            document.querySelectorAll('.tech-tag').forEach(el => el.classList.remove('drag-over'));
+            if (target) {
+                target.classList.add('drag-over');
+                touchTarget = target;
+            } else {
+                touchTarget = null;
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (touchData) {
+                touchData.element.classList.remove('touch-drag');
+            }
+            
+            if (touchClone) {
+                document.body.removeChild(touchClone);
+                touchClone = null;
+            }
+            
+            document.querySelectorAll('.tech-tag').forEach(el => el.classList.remove('drag-over'));
+            
+            if (touchTarget && touchData) {
+                const fromIdx = currentOrder.indexOf(touchData.name);
+                const toIdx = currentOrder.indexOf(touchTarget.dataset.name);
+                if (fromIdx > -1 && toIdx > -1 && fromIdx !== toIdx) {
+                    const [removed] = currentOrder.splice(fromIdx, 1);
+                    currentOrder.splice(toIdx, 0, removed);
+                    renderOrder();
+                }
+            }
+            
+            touchData = null;
+            touchTarget = null;
+        }
 
         function removeTechnique(name) {
             if (currentOrder.length <= 1) {
@@ -567,7 +678,9 @@
             currentOrder = currentOrder.filter(n => n !== name);
             renderOrder();
         }
+
         function resetOrder() { currentOrder = [...ALL_TECH]; renderOrder(); }
+        
         function shuffleOrder() {
             for (let i = currentOrder.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -575,6 +688,7 @@
             }
             renderOrder();
         }
+        
         function toggleAllTech() {
             if (currentOrder.length === ALL_TECH.length) {
                 currentOrder = [currentOrder[0]];
@@ -583,6 +697,7 @@
             }
             renderOrder();
         }
+        
         function updateTechCount() {
             document.getElementById('techCount').textContent = `${currentOrder.length}/${ALL_TECH.length}`;
         }
@@ -979,7 +1094,7 @@
         }
 
         // ============================================================
-        // UPLOAD SEGMENTS - ĐÃ SỬA LỖI 415
+        // UPLOAD SEGMENTS - TỰ ĐỘNG LOAD LẠI
         // ============================================================
         document.getElementById('segmentFileInput').addEventListener('change', async function(e) {
             const files = e.target.files;
@@ -990,7 +1105,6 @@
             }
             
             const formData = new FormData();
-            // THÊM SESSION ID VÀO FORM DATA
             formData.append('session_id', currentSessionId);
             for (const file of files) {
                 formData.append('segments', file);
@@ -1001,14 +1115,15 @@
             try {
                 const response = await fetch(`/segments/upload?session_id=${currentSessionId}`, {
                     method: 'POST',
-                    body: formData  // Không có header Content-Type, browser tự set
+                    body: formData
                 });
                 
                 const result = await response.json();
                 
                 if (result.success) {
                     showStatus(`✅ Đã upload ${result.count} segments!`, 'success');
-                    loadSegments();
+                    // Tự động load lại segments sau khi upload
+                    setTimeout(() => loadSegments(), 500);
                 } else {
                     showStatus('❌ ' + result.error, 'error');
                 }
@@ -1018,6 +1133,59 @@
             
             e.target.value = '';
         });
+
+        // ============================================================
+        // CHECK SEGMENT STATUS - MỚI
+        // ============================================================
+        async function checkSegmentStatus() {
+            if (!currentSessionId) {
+                showStatus('⚠️ Chưa có phiên! Hãy tạo phiên mới.', 'warning');
+                return;
+            }
+            
+            try {
+                // 1. Kiểm tra session
+                const sessionRes = await fetch('/api/session/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: currentSessionId })
+                });
+                const sessionData = await sessionRes.json();
+                
+                // 2. Kiểm tra segments
+                const segRes = await fetch(`/segments/list?session_id=${currentSessionId}`);
+                const segData = await segRes.json();
+                
+                // 3. Lấy thời gian còn lại
+                const timerText = document.getElementById('sessionTimer').textContent;
+                
+                // 4. Hiển thị kết quả
+                const isValid = sessionData.valid;
+                const segCount = segData.success ? segData.count : 0;
+                
+                let details = `📊 Phiên: ${isValid ? '✅ Hoạt động' : '❌ Hết hạn'} | Segments: ${segCount} | Còn: ${timerText}`;
+                
+                if (segCount > 0 && segData.segments) {
+                    details += '\n📦 Chi tiết segments:';
+                    segData.segments.forEach(s => {
+                        details += `\n   - ${s.filename} (${(s.size/1024).toFixed(2)} KB)`;
+                    });
+                }
+                
+                showStatus(details, isValid ? 'info' : 'warning');
+                
+                if (segCount === 0) {
+                    showStatus('⚠️ Không có segment nào. Upload hoặc mã hóa lại.', 'warning');
+                }
+                
+                console.log('🔍 Session:', sessionData);
+                console.log('🔍 Segments:', segData);
+                
+            } catch (e) {
+                showStatus('❌ Lỗi kiểm tra: ' + e.message, 'error');
+                console.error('Check segment error:', e);
+            }
+        }
 
         async function clearSegments() {
             if (!confirm('Xóa tất cả segments đã hết hạn?')) return;
