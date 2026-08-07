@@ -1,4 +1,4 @@
-# app.py - SPC Encryptor Pro v2.5.0 (Thiết kế mới: Data ID + Session ID)
+# app.py - SPC Encryptor Pro v2.5.2 (Sửa lỗi xóa segment)
 from flask import Flask, render_template, request, jsonify, send_file
 import hashlib
 import os
@@ -77,11 +77,13 @@ class SessionManager:
         return self.get_session(session_id) is not None
     
     def _cleanup_session(self, session_id):
+        """Xóa session và tất cả segment liên quan"""
         if session_id in self.sessions:
             segment_dir = app.config['SEGMENT_FOLDER']
             if os.path.exists(segment_dir):
                 for filename in os.listdir(segment_dir):
-                    if filename.endswith(f'_{session_id}.dat'):
+                    # ===== SỬA: Tìm file có chứa session_id (dạng segment_{data_id}_{session_id}_{index}.dat) =====
+                    if f'_{session_id}_' in filename and filename.endswith('.dat'):
                         try:
                             os.remove(os.path.join(segment_dir, filename))
                             print(f"[CLEANUP] Removed segment: {filename}")
@@ -142,7 +144,7 @@ def require_session(f):
 # ============================================================
 def cleanup_job():
     while True:
-        time.sleep(1800)
+        time.sleep(1800)  # 30 phút
         session_manager.cleanup_expired()
         print("[CLEANUP] Cleanup job completed")
 
@@ -173,7 +175,7 @@ class SAOYUT:
         return self.data
 
 # ============================================================
-# CÁC KỸ THUẬT
+# CÁC KỸ THUẬT (R, C, E, Z, S, H, D, B, P)
 # ============================================================
 def technique_R(data, saoyut, reverse=False):
     if not reverse:
@@ -344,7 +346,7 @@ def technique_P(data, saoyut, reverse=False):
     return data
 
 # ============================================================
-# KỸ THUẬT L - THIẾT KẾ MỚI
+# KỸ THUẬT L - TẠO SEGMENT VỚI DATA ID + SESSION
 # ============================================================
 def technique_L(data, saoyut, reverse=False):
     if not reverse:
@@ -368,26 +370,23 @@ def technique_L(data, saoyut, reverse=False):
             "data_id": data_id
         })
         
-        # ===== SỬA: TẠO FILE SEGMENT VỚI SESSION ID TỪ CONTEXT =====
         # Lấy browser_session_id từ context (nếu có)
         browser_session_id = None
         if 'browser_session_id' in saoyut.data:
             browser_session_id = saoyut.data.get('browser_session_id')
         
+        # Tạo file segment với data_id và session_id
         segment_dir = app.config['SEGMENT_FOLDER']
         os.makedirs(segment_dir, exist_ok=True)
         
         for i, segment in enumerate(segments):
             if browser_session_id:
-                # Tên file: segment_{data_id}_{browser_session_id}_{i+1}.dat
                 segment_path = os.path.join(segment_dir, f"segment_{data_id}_{browser_session_id}_{i+1}.dat")
             else:
-                # Fallback: segment_{data_id}_{i+1}.dat
                 segment_path = os.path.join(segment_dir, f"segment_{data_id}_{i+1}.dat")
             with open(segment_path, 'wb') as f:
                 f.write(segment)
             print(f"[DEBUG] Created segment: {os.path.basename(segment_path)}")
-        # ===========================================================
         
         print(f"[DEBUG] L technique created with data_id: {data_id}")
         
@@ -424,7 +423,6 @@ def spc_encrypt_with_order(data, seed, technique_order, browser_session_id=None)
         seed = hashlib.sha256(os.urandom(32)).hexdigest()
     
     saoyut = SAOYUT(seed)
-    # Lưu browser_session_id vào SAOYUT để kỹ thuật L dùng
     saoyut.data['browser_session_id'] = browser_session_id
     
     result = data
