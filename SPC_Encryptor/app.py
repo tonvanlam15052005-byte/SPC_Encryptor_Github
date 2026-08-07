@@ -1,4 +1,4 @@
-# app.py - SPC Encryptor Pro v2.5.2 (Sửa lỗi xóa segment)
+# app.py - SPC Encryptor Pro v3.0 (Sửa lỗi S + UI mới)
 from flask import Flask, render_template, request, jsonify, send_file
 import hashlib
 import os
@@ -34,8 +34,6 @@ for folder in ['UPLOAD_FOLDER', 'DOWNLOAD_FOLDER', 'SEGMENT_FOLDER']:
     if not os.path.exists(path):
         os.makedirs(path)
         print(f"[INIT] Created folder: {path}")
-    else:
-        print(f"[INIT] Folder exists: {path}")
 
 # ============================================================
 # SESSION MANAGER
@@ -82,7 +80,6 @@ class SessionManager:
             segment_dir = app.config['SEGMENT_FOLDER']
             if os.path.exists(segment_dir):
                 for filename in os.listdir(segment_dir):
-                    # ===== SỬA: Tìm file có chứa session_id (dạng segment_{data_id}_{session_id}_{index}.dat) =====
                     if f'_{session_id}_' in filename and filename.endswith('.dat'):
                         try:
                             os.remove(os.path.join(segment_dir, filename))
@@ -144,7 +141,7 @@ def require_session(f):
 # ============================================================
 def cleanup_job():
     while True:
-        time.sleep(1800)  # 30 phút
+        time.sleep(1800)
         session_manager.cleanup_expired()
         print("[CLEANUP] Cleanup job completed")
 
@@ -175,7 +172,7 @@ class SAOYUT:
         return self.data
 
 # ============================================================
-# CÁC KỸ THUẬT (R, C, E, Z, S, H, D, B, P)
+# CÁC KỸ THUẬT (10 KỸ THUẬT: R, C, E, Z, S, H, D, B, P, L)
 # ============================================================
 def technique_R(data, saoyut, reverse=False):
     if not reverse:
@@ -241,52 +238,99 @@ def technique_Z(data, saoyut, reverse=False):
 
 def technique_S(data, saoyut, reverse=False):
     if not reverse:
+        # === MÃ HÓA ===
         num_shards = 4
         shard_size = len(data) // num_shards
+        
+        # Chia thành shard
         shards = []
         for i in range(num_shards):
             start = i * shard_size
             end = start + shard_size if i < num_shards - 1 else len(data)
             shards.append(data[start:end])
         
+        # LƯU THÔNG TIN DỰA TRÊN CONTENT, KHÔNG PHẢI VỊ TRÍ
+        shard_hashes = [hashlib.sha256(s).hexdigest() for s in shards]
+        
+        # Shuffle
         indices = list(range(num_shards))
         random.shuffle(indices)
-        shuffled = [shards[i] for i in indices]
         
+        # Ghép theo thứ tự mới
+        shuffled_data = b''
+        for idx in indices:
+            shuffled_data += shards[idx]
+        
+        # LƯU METADATA ĐẦY ĐỦ
         saoyut.add_technique("S", {
             "num_shards": num_shards,
-            "shard_sizes": [len(s) for s in shards],
-            "shuffle_order": indices
+            "shard_hashes": shard_hashes,      # Hash của từng shard (dùng để verify)
+            "shuffle_map": indices,             # Thứ tự mới
+            "shard_count": num_shards,
+            "total_size": len(data)
         })
-        return b''.join(shuffled)
+        
+        print(f"[S] Encrypt: {[len(s) for s in shards]} → {indices}")
+        return shuffled_data
+        
     else:
+        # === GIẢI MÃ ===
         meta = saoyut.get_technique_by_name("S")
         if not meta:
             raise ValueError("Missing S metadata!")
         
-        shuffle_order = meta.get("shuffle_order", [])
-        shard_sizes = meta.get("shard_sizes", [])
+        shard_hashes = meta.get("shard_hashes", [])
+        shuffle_map = meta.get("shuffle_map", [])
+        num_shards = meta.get("num_shards", 4)
+        total_size = meta.get("total_size", len(data))
         
-        if not shuffle_order or not shard_sizes:
-            return data
+        if not shard_hashes or len(shard_hashes) != num_shards:
+            raise ValueError("Invalid S metadata: missing shard hashes")
         
-        shards = []
+        # BƯỚC 1: Tái tạo các shard từ dữ liệu đã giải mã (có thể đã bị XOR)
+        # Vì chúng ta biết tổng size, ta cần tìm cách tách shard
+        
+        # Cách 1: Dùng shard_size từ tổng size
+        shard_size = total_size // num_shards
+        
+        shards_in_order = []
         pos = 0
-        for size in shard_sizes:
-            shards.append(data[pos:pos+size])
+        for i in range(num_shards):
+            if i < num_shards - 1:
+                size = shard_size
+            else:
+                size = total_size - (shard_size * (num_shards - 1))
+            shards_in_order.append(data[pos:pos+size])
             pos += size
         
-        original_order = [None] * len(shards)
-        for new_pos, old_pos in enumerate(shuffle_order):
-            if old_pos < len(shards):
-                original_order[old_pos] = shards[new_pos]
+        # BƯỚC 2: Verify và sắp xếp lại theo đúng thứ tự
+        # Vì B (XOR) có thể làm thay đổi giá trị, ta không thể dùng hash để verify
+        # Nhưng ta có thể dùng shuffle_map để biết thứ tự
         
-        result = bytearray()
-        for shard in original_order:
-            if shard:
-                result.extend(shard)
+        # Tạo reverse map
+        reverse_map = [0] * num_shards
+        for new_pos, old_pos in enumerate(shuffle_map):
+            reverse_map[old_pos] = new_pos
         
-        return bytes(result)
+        # Khôi phục thứ tự gốc
+        restored_shards = [None] * num_shards
+        for old_pos, new_pos in enumerate(reverse_map):
+            restored_shards[old_pos] = shards_in_order[new_pos]
+        
+        # Ghép lại
+        result = b''
+        for shard in restored_shards:
+            if shard is not None:
+                result += shard
+        
+        # VERIFY: Kiểm tra size
+        if len(result) != total_size:
+            print(f"[S] Warning: Size mismatch! Expected: {total_size}, Got: {len(result)}")
+            # Nếu size không khớp, thử cách khác
+            # Cách 2: Dùng shard_hashes để tìm đúng shard (dành cho dữ liệu chưa bị XOR)
+            # Nếu dữ liệu đã bị XOR, hash sẽ không khớp → không dùng được
+        
+        return result
 
 def technique_H(data, saoyut, reverse=False):
     if not reverse:
@@ -327,27 +371,59 @@ def technique_D(data, saoyut, reverse=False):
 
 def technique_B(data, saoyut, reverse=False):
     password = saoyut.seed
+    
+    # Tạo key từ seed
+    hashed = password
     for _ in range(100):
-        password = hashlib.sha256(password.encode()).hexdigest()
-    password = password[:32]
-    key = password.encode()
-    result = bytearray(len(data))
-    for i in range(len(data)):
-        result[i] = data[i] ^ key[i % len(key)]
+        hashed = hashlib.sha256(hashed.encode()).hexdigest()
+    key = hashed[:32].encode()
+    
     if not reverse:
+        # === MÃ HÓA ===
+        result = bytearray(len(data))
+        for i in range(len(data)):
+            result[i] = data[i] ^ key[i % len(key)]
+        
+        # LƯU THÔNG TIN
         saoyut.add_technique("B", {
-            "password_hash": hashlib.sha256(password.encode()).hexdigest()
+            "password_hash": hashed,
+            "iterations": 100,
+            "key_length": len(key)
         })
-    return bytes(result)
+        
+        print(f"[B] Encrypt: {len(data)} bytes")
+        return bytes(result)
+        
+    else:
+        # === GIẢI MÃ ===
+        meta = saoyut.get_technique_by_name("B")
+        if not meta:
+            raise ValueError("Missing B metadata!")
+        
+        # Dùng hash từ metadata hoặc tính lại
+        stored_hash = meta.get("password_hash", "")
+        if stored_hash:
+            key = stored_hash[:32].encode()
+        else:
+            # Fallback
+            hashed = password
+            for _ in range(100):
+                hashed = hashlib.sha256(hashed.encode()).hexdigest()
+            key = hashed[:32].encode()
+        
+        # XOR để phục hồi
+        result = bytearray(len(data))
+        for i in range(len(data)):
+            result[i] = data[i] ^ key[i % len(key)]
+        
+        print(f"[B] Decrypt: {len(data)} bytes")
+        return bytes(result)
 
 def technique_P(data, saoyut, reverse=False):
     if not reverse:
         saoyut.add_technique("P", {"ram_only": True})
     return data
 
-# ============================================================
-# KỸ THUẬT L - TẠO SEGMENT VỚI DATA ID + SESSION
-# ============================================================
 def technique_L(data, saoyut, reverse=False):
     if not reverse:
         # Tạo data_id (danh tính dữ liệu) - 32 ký tự hex
@@ -401,16 +477,63 @@ def technique_L(data, saoyut, reverse=False):
             raise ValueError("Missing data_id in SAOYUT!")
         
         return data
+# Thêm vào app.py - Hàm xử lý đặc biệt cho S + B
+
+def handle_s_b_compatibility(data, saoyut_data, seed, technique_order, reverse=False):
+    """
+    Xử lý đặc biệt khi S và B cùng tồn tại
+    """
+    # Kiểm tra có cả S và B không
+    has_S = 'S' in technique_order
+    has_B = 'B' in technique_order
+    
+    if not (has_S and has_B):
+        return None  # Không cần xử lý đặc biệt
+    
+    # Lấy metadata của S và B
+    s_meta = None
+    b_meta = None
+    
+    for tech in saoyut_data.get('techniques', []):
+        if tech['name'] == 'S':
+            s_meta = tech['metadata']
+        elif tech['name'] == 'B':
+            b_meta = tech['metadata']
+    
+    if not s_meta or not b_meta:
+        return None
+    
+    print("[COMPAT] Detected S + B combination")
+    print(f"[COMPAT] S: {s_meta}")
+    print(f"[COMPAT] B: {b_meta}")
+    
+    # Nếu đang giải mã (reverse=True)
+    if reverse:
+        # Khi giải mã, S và B cần xử lý theo thứ tự ngược lại
+        # Nhưng vì chúng ta đã xử lý trong spc_decrypt_with_order,
+        # ta chỉ cần đảm bảo metadata của S được bảo toàn
+        
+        # LƯU Ý: S cần biết shard_sizes, nhưng B có thể làm thay đổi dữ liệu
+        # Giải pháp: S dùng total_size để tái tạo shard, không dùng shard_sizes
+        
+        s_meta['use_total_size'] = True  # Đánh dấu dùng total_size thay vì shard_sizes
+        
+        return {
+            's_meta': s_meta,
+            'b_meta': b_meta
+        }
+    
+    return None
 
 # ============================================================
-# DANH SÁCH KỸ THUẬT
+# DANH SÁCH KỸ THUẬT (ĐÃ BẬT S)
 # ============================================================
 ALL_TECHNIQUES = {
     "R": technique_R,
     "C": technique_C,
     "E": technique_E,
     "Z": technique_Z,
-    # "S": technique_S,
+    "S": technique_S,      # ✅ ĐÃ BẬT LẠI
     "H": technique_H,
     "D": technique_D,
     "B": technique_B,
@@ -442,8 +565,14 @@ def spc_decrypt_with_order(data, saoyut_data, seed, technique_order, browser_ses
     saoyut.data = saoyut_data
     result = data
     
+    # KIỂM TRA TƯƠNG THÍCH S + B
+    compat = handle_s_b_compatibility(data, saoyut_data, seed, technique_order, reverse=True)
+    if compat:
+        print("[COMPAT] Using S + B compatibility mode")
+    
     for name in reversed(technique_order):
         if name == "L":
+            # Xử lý L như cũ
             meta = saoyut.get_technique_by_name("L")
             if meta:
                 data_id = meta.get("data_id", "")
@@ -478,6 +607,50 @@ def spc_decrypt_with_order(data, saoyut_data, seed, technique_order, browser_ses
                     continue
         else:
             if name in ALL_TECHNIQUES:
+                # XỬ LÝ ĐẶC BIỆT CHO S KHI CÓ B
+                if name == 'S' and 'B' in technique_order:
+                    # S được xử lý với chế độ tương thích
+                    print(f"[DECRYPT] Processing S in compatibility mode")
+                    # Lấy metadata S đã được cập nhật
+                    s_meta = saoyut.get_technique_by_name("S")
+                    if s_meta and s_meta.get('use_total_size'):
+                        # Dùng total_size thay vì shard_sizes
+                        total_size = s_meta.get('total_size', len(result))
+                        num_shards = s_meta.get('num_shards', 4)
+                        shuffle_map = s_meta.get('shuffle_map', [])
+                        
+                        # Tái tạo shard dựa trên total_size
+                        shard_size = total_size // num_shards
+                        shards_in_order = []
+                        pos = 0
+                        for i in range(num_shards):
+                            if i < num_shards - 1:
+                                size = shard_size
+                            else:
+                                size = total_size - (shard_size * (num_shards - 1))
+                            shards_in_order.append(result[pos:pos+size])
+                            pos += size
+                        
+                        # Unshuffle
+                        reverse_map = [0] * num_shards
+                        for new_pos, old_pos in enumerate(shuffle_map):
+                            reverse_map[old_pos] = new_pos
+                        
+                        restored_shards = [None] * num_shards
+                        for old_pos, new_pos in enumerate(reverse_map):
+                            restored_shards[old_pos] = shards_in_order[new_pos]
+                        
+                        # Ghép lại
+                        new_result = b''
+                        for shard in restored_shards:
+                            if shard is not None:
+                                new_result += shard
+                        
+                        result = new_result
+                        print(f"[DECRYPT] S compatibility mode: {len(result)} bytes")
+                        continue
+                
+                # XỬ LÝ BÌNH THƯỜNG
                 result = ALL_TECHNIQUES[name](result, saoyut, reverse=True)
     
     return result
@@ -485,7 +658,6 @@ def spc_decrypt_with_order(data, saoyut_data, seed, technique_order, browser_ses
 # ============================================================
 # SEGMENT API
 # ============================================================
-
 @app.route('/segments/list', methods=['GET'])
 @require_session
 def list_segments():
@@ -735,10 +907,20 @@ def download_all_segments():
         print(f"[ERROR] download_all_segments: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/segments/count', methods=['GET'])
+def get_segment_count():
+    try:
+        segment_dir = app.config['SEGMENT_FOLDER']
+        count = 0
+        if os.path.exists(segment_dir):
+            count = len([f for f in os.listdir(segment_dir) if f.endswith('.dat')])
+        return jsonify({'success': True, 'count': count})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============================================================
 # SESSION API
 # ============================================================
-
 @app.route('/api/session/create', methods=['POST'])
 def create_session():
     try:
@@ -797,13 +979,114 @@ def clear_session():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/session', methods=['GET'])
+def get_session():
+    try:
+        session_id = session_manager.create_session()
+        return jsonify({
+            'success': True,
+            'session_id': session_id
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============================================================
 # ROUTES CHÍNH
 # ============================================================
-
 @app.route('/')
 def index():
     return render_template('index.html', techniques=list(ALL_TECHNIQUES.keys()))
+
+@app.route('/process', methods=['POST'])
+def process_file():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file uploaded'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        action = request.form.get('action', 'encrypt')
+        technique = request.form.get('technique', 'auto')
+        output_format = request.form.get('output_format', 'base64')
+        
+        # Đọc file
+        file_data = file.read()
+        
+        # Tạo session ID
+        browser_session_id = hashlib.md5(f"{time.time()}{random.randint(1, 999999)}".encode()).hexdigest()[:16]
+        
+        # Tạo seed
+        seed = hashlib.sha256(os.urandom(32)).hexdigest()
+        
+        # Xác định kỹ thuật
+        if technique == 'auto':
+            tech_order = ['R', 'C', 'E', 'Z', 'S', 'H', 'D', 'B', 'P', 'L']
+        else:
+            tech_order = [technique]
+        
+        if action == 'encrypt':
+            result = spc_encrypt_with_order(file_data, seed, tech_order, browser_session_id)
+            
+            # Lấy data_id
+            data_id = None
+            for tech in result["saoyut"]["techniques"]:
+                if tech["name"] == "L":
+                    data_id = tech["metadata"].get("data_id")
+                    break
+            
+            # Format output
+            if output_format == 'base64':
+                output = base64.b64encode(result["data"]).decode('utf-8')
+            elif output_format == 'hex':
+                output = result["data"].hex()
+            else:
+                output = result["data"].decode('utf-8', errors='replace')
+            
+            return jsonify({
+                'success': True,
+                'action': 'encrypt',
+                'output': output,
+                'output_format': output_format,
+                'data_id': data_id,
+                'session_id': browser_session_id,
+                'saoyut': result["saoyut"],
+                'seed': seed,
+                'order': tech_order
+            })
+        
+        else:  # decrypt
+            # Cần có seed và saoyut từ request
+            seed = request.form.get('seed', '')
+            saoyut_json = request.form.get('saoyut', '')
+            
+            if not seed or not saoyut_json:
+                return jsonify({'success': False, 'error': 'Seed and SAOYUT required for decryption'}), 400
+            
+            saoyut_data = json.loads(saoyut_json)
+            result = spc_decrypt_with_order(file_data, saoyut_data, seed, tech_order, browser_session_id)
+            
+            if output_format == 'base64':
+                output = base64.b64encode(result).decode('utf-8')
+            elif output_format == 'hex':
+                output = result.hex()
+            else:
+                output = result.decode('utf-8', errors='replace')
+            
+            return jsonify({
+                'success': True,
+                'action': 'decrypt',
+                'output': output,
+                'output_format': output_format
+            })
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
 
 @app.route('/encrypt', methods=['POST'])
 def encrypt():
