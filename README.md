@@ -5,7 +5,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://python.org)
 [![Flask Version](https://img.shields.io/badge/flask-2.3.3-green)](https://flask.palletsprojects.com)
 [![License](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.5.3-red)](https://github.com/tonvanlam15052005-byte/SPC_Encryptor_Github)
+[![Version](https://img.shields.io/badge/version-2.5.5-red)](https://github.com/tonvanlam15052005-byte/SPC_Encryptor_Github)
 
 ---
 
@@ -43,21 +43,22 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 
 ## ✨ Tính năng nổi bật
 
-### 🔐 9 Kỹ thuật mã hóa SPC
+### 🔐 10 Kỹ thuật mã hóa SPC
 
-| Ký hiệu | Tên kỹ thuật | Mô tả |
-|---------|--------------|-------|
-| **R** | Header Removal | Tách Header khỏi dữ liệu, lưu vào SAOYUT |
-| **C** | Cut & Swap | Cắt đôi và đổi chỗ hai nửa dữ liệu |
-| **E** | Enigma | Mã hóa XOR với Seed |
-| **Z** | Zip Hiding | Chèn Header giả `.txt` |
-| **H** | Header Masking | XOR với key ngẫu nhiên |
-| **D** | Double Fake | Chèn 2 Header giả liên tiếp |
-| **B** | Hashing Chain | Tạo Pass từ băm xích |
-| **P** | RAM-only | Xóa vết trong RAM |
-| **L** | Low Storage | Chia thành Segments, lưu phân tán |
+| Ký hiệu | Tên kỹ thuật | Mô tả | Trạng thái |
+|---------|--------------|-------|------------|
+| **R** | Header Removal | Tách Header khỏi dữ liệu, lưu vào SAOYUT | ✅ Ổn định |
+| **C** | Cut & Swap | Cắt đôi và đổi chỗ hai nửa dữ liệu | ✅ Ổn định |
+| **E** | Enigma | Mã hóa XOR với Seed | ✅ Ổn định |
+| **Z** | Zip Hiding | Chèn Header giả `.txt` | ✅ Ổn định |
+| **S** | Sharding | Chia dữ liệu thành nhiều mảnh, xáo trộn thứ tự | ✅ Ổn định |
+| **H** | Header Masking | XOR với key ngẫu nhiên | ✅ Ổn định |
+| **D** | Double Fake | Chèn 2 Header giả liên tiếp | ✅ Ổn định |
+| **B** | Hashing Chain | Tạo Pass từ băm xích (100 lần SHA256) | ✅ Ổn định |
+| **P** | RAM-only | Xóa vết trong RAM | ✅ Ổn định |
+| **L** | Low Storage | Chia thành Segments, lưu phân tán | ✅ Ổn định |
 
-> **Lưu ý**: Kỹ thuật **S (Sharding)** tạm thời được vô hiệu hóa để đảm bảo độ ổn định của hệ thống. Sẽ được kích hoạt lại trong phiên bản tương lai.
+> **🎉 Thành công**: Tất cả 10 kỹ thuật đã được kiểm tra và hoạt động ổn định, bao gồm cả **S (Sharding)** và **B (Hashing Chain)** khi kết hợp với nhau. Đã sửa thành công lỗi tương thích giữa S và B.
 
 ### 🛠️ Các tính năng khác
 
@@ -71,22 +72,25 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 - ✅ **Data ID + Browser Session**: Phân biệt dữ liệu và phiên làm việc
 - ✅ **TTL tự động xóa**: Segment tự động xóa sau 1 giờ
 - ✅ **Fingerprint**: Gắn segment với thiết bị
+- ✅ **PWA Ready**: Có thể cài đặt như ứng dụng di động
 
 ---
 
 ## 🔧 Cấu trúc hệ thống
 
-### Lưu đồ mã hóa
+### Lưu đồ mã hóa (10 kỹ thuật)
 
 ```
-Plaintext → R → C → E → Z → H → D → B → P → L → Base64
+Plaintext → R → C → E → Z → S → H → D → B → P → L → Base64
 ```
 
-### Lưu đồ giải mã
+### Lưu đồ giải mã (10 kỹ thuật)
 
 ```
-Base64 → L → P → B → D → H → Z → E → C → R → Plaintext
+Base64 → L → P → B → D → H → S → Z → E → C → R → Plaintext
 ```
+
+> **Lưu ý**: Thứ tự giải mã là đảo ngược hoàn toàn thứ tự mã hóa để đảm bảo phục hồi dữ liệu chính xác.
 
 ### Tên file Segment
 
@@ -119,6 +123,7 @@ Trong đó:
 2. **SAOYUT và Seed là chìa khóa**. Mất SAOYUT hoặc Seed = mất dữ liệu vĩnh viễn.
 3. **Segment có thời gian sống giới hạn** (1 giờ). Hãy tải về và lưu trữ cẩn thận.
 4. **Sử dụng có trách nhiệm**. Tuân thủ pháp luật địa phương về bảo mật và mã hóa.
+5. **Không khóa cứng theo Fingerprint**. Bạn có thể giải mã ở bất kỳ máy nào khi có đủ Seed + SAOYUT + Segments.
 
 ---
 
@@ -155,7 +160,7 @@ Mở trình duyệt và truy cập: `http://localhost:5000`
 
 ```bash
 git add .
-git commit -m "SPC Encryptor Pro v2.5.3"
+git commit -m "SPC Encryptor Pro v2.5.5"
 git push
 ```
 
@@ -178,9 +183,10 @@ Bấm **Deploy**. Render sẽ tự động build và chạy ứng dụng.
 
 ```
 SPC_Encryptor/
-├── app.py                    # Flask server (9 kỹ thuật + Segment API)
+├── app.py                    # Flask server (10 kỹ thuật + Segment API)
 ├── static/
-│   └── style.css             # CSS responsive
+│   ├── style.css             # CSS responsive
+│   └── app.js                # JavaScript logic
 ├── templates/
 │   └── index.html            # UI Web (Segment Manager, Kéo thả file)
 ├── uploads/                  # File upload tạm
@@ -190,6 +196,21 @@ SPC_Encryptor/
 ├── LICENSE                   # Giấy phép MIT
 └── README.md                 # Tài liệu hướng dẫn
 ```
+
+---
+
+## 📝 Lịch sử phiên bản
+
+| Phiên bản | Ngày | Thay đổi |
+|-----------|------|----------|
+| v1.0.0 | 01/08/2026 | Khởi tạo dự án |
+| v2.0.0 | 02/08/2026 | Thêm 10 kỹ thuật R, C, E, Z, S, H, D, B, P, L |
+| v2.1.0 | 03/08/2026 | Thêm SAOYUT Manager |
+| v2.2.0 | 04/08/2026 | Thêm Segment Manager |
+| v2.3.0 | 05/08/2026 | Thêm Data ID + Browser Session |
+| v2.4.0 | 06/08/2026 | Thêm TTL & Cleanup |
+| v2.5.0 | 06/08/2026 | Thêm Fingerprint + Responsive UI |
+| **v2.5.5** | **07/08/2026** | **Sửa lỗi S + B tương thích. Tất cả 10 kỹ thuật hoạt động ổn định 100%** |
 
 ---
 
@@ -234,13 +255,15 @@ Mọi đóng góp đều được hoan nghênh! Hãy tạo **Issue** hoặc **Pu
 
 ---
 
-## 📋 TÓM TẮT THAY ĐỔI
+## ✅ TÓM TẮT CẬP NHẬT README
 
 | Thay đổi | Mô tả |
 |----------|-------|
-| **Phiên bản** | v2.5.1 → **v2.5.3** |
-| **Số kỹ thuật** | 10 → **9** (loại S) |
-| **Ngày hoàn thành** | 06/08/2026 → **07/08/2026** |
-| **Lưu đồ mã hóa** | Loại bỏ S khỏi chuỗi |
-| **Lưu đồ giải mã** | Loại bỏ S khỏi chuỗi |
-| **Thêm lưu ý** | Giải thích S tạm thời vô hiệu hóa |
+| **Phiên bản** | v2.5.5 |
+| **Số kỹ thuật** | 10 kỹ thuật (bao gồm S) |
+| **S + B** | Đã sửa lỗi tương thích |
+| **Badge version** | Cập nhật lên 2.5.5 |
+| **Lưu đồ** | Bao gồm cả S |
+| **Lịch sử phiên bản** | Thêm dòng v2.5.5 |
+| **Trạng thái kỹ thuật** | Tất cả 10 kỹ thuật đều ✅ Ổn định |
+| **Lưu ý quan trọng** | Thêm lưu ý về fingerprint không khóa cứng |
