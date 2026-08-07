@@ -144,7 +144,7 @@
 <body>
     <div class="container">
         <h1>🔐 SPC Encryptor Pro</h1>
-        <p class="subtitle">10 kỹ thuật · Mã hóa phân tán · Quản lý phiên và dữ liệu <span class="highlight">v2.5.2</span></p>
+        <p class="subtitle">9 kỹ thuật · Mã hóa file · Xuất nhập SAOYUT · <span class="highlight">v2.5.2</span></p>
 
         <div class="row">
             <!-- ===== LEFT COLUMN ===== -->
@@ -326,10 +326,10 @@
         // ============================================================
         // STATE - THIẾT KẾ MỚI
         // ============================================================
-        const ALL_TECH = ['R', 'C', 'E', 'Z', 'S', 'H', 'D', 'B', 'P', 'L'];
+        const ALL_TECH = ['R', 'C', 'E', 'Z', 'H', 'D', 'B', 'P', 'L']; //, 'S' // S is disabled for now Z>S>H 
         const TECH_NAMES = {
             'R': 'Header Removal', 'C': 'Cut & Swap', 'E': 'Enigma',
-            'Z': 'Zip Hiding', 'S': 'Sharding', 'H': 'Header Masking',
+            'Z': 'Zip Hiding', 'H': 'Header Masking', //, 'S': 'Sharding' // Z>S>H // S (Sharding) temporarily disabled - will be re-enabled in future version
             'D': 'Double Fake', 'B': 'Hashing Chain', 'P': 'RAM-only',
             'L': 'Low Storage Sharefile'
         };
