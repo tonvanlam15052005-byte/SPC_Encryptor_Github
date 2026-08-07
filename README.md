@@ -23,7 +23,7 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 
 ---
 
-## 🧠 Nguồn gốc và lý thuyết (một phần trong nhóm nội bộ của chúng tôi)
+## 🧠 Nguồn gốc và lý thuyết (nhóm của chúng tôi)
 
 ### Lý thuyết gốc: SPC (Super Planet Crypting)
 
