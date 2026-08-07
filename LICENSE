@@ -49,18 +49,22 @@ contributions to the SPC Encryptor Pro software and the underlying SPC theory.
    - Reconstruction and optimization of core cryptographic workflows.
 
 3. DEVELOPMENT AND IMPLEMENTATION
-   Open Source Community Contributors
-   - Web application implementation (Flask, HTML, CSS, JavaScript).
+   Human Contributors
+   - System architecture design and implementation.
+   - Web application development (Flask, HTML, CSS, JavaScript).
    - Vietnamese localization and internationalization.
    - UI/UX design and responsive development.
+   - Bug fixing, performance optimization, and security enhancements.
+   - Final decision-making on all technical and creative aspects.
 
    AI-Assisted Development Tools
-   - Supplementary code generation and optimization.
-   - Debugging assistance and performance analysis.
+   - Supplementary code generation and optimization suggestions.
+   - Debugging assistance and error analysis.
    - Documentation drafting and review.
-   - Note: All AI contributions were supervised and reviewed by human
-     developers. All final decisions regarding architecture, security,
-     and functionality were made by human contributors.
+   - Test case generation and validation assistance.
+   - Note: All AI-generated content was reviewed, tested, and approved by
+     human developers. AI tools did not make creative or strategic decisions.
+     The development team takes full responsibility for all code and decisions.
 
 4. TESTING AND QUALITY ASSURANCE
    Testing Team Members
