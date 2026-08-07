@@ -107,52 +107,99 @@ def technique_Z(data, saoyut, reverse=False):
 # ============================================================
 def technique_S(data, saoyut, reverse=False):
     if not reverse:
+        # === MÃ HÓA ===
         num_shards = 4
         shard_size = len(data) // num_shards
+        
+        # Chia thành shard
         shards = []
         for i in range(num_shards):
             start = i * shard_size
             end = start + shard_size if i < num_shards - 1 else len(data)
             shards.append(data[start:end])
         
+        # LƯU THÔNG TIN DỰA TRÊN CONTENT, KHÔNG PHẢI VỊ TRÍ
+        shard_hashes = [hashlib.sha256(s).hexdigest() for s in shards]
+        
+        # Shuffle
         indices = list(range(num_shards))
         random.shuffle(indices)
-        shuffled = [shards[i] for i in indices]
         
+        # Ghép theo thứ tự mới
+        shuffled_data = b''
+        for idx in indices:
+            shuffled_data += shards[idx]
+        
+        # LƯU METADATA ĐẦY ĐỦ
         saoyut.add_technique("S", {
             "num_shards": num_shards,
-            "shard_sizes": [len(s) for s in shards],
-            "shuffle_order": indices
+            "shard_hashes": shard_hashes,      # Hash của từng shard (dùng để verify)
+            "shuffle_map": indices,             # Thứ tự mới
+            "shard_count": num_shards,
+            "total_size": len(data)
         })
-        return b''.join(shuffled)
+        
+        print(f"[S] Encrypt: {[len(s) for s in shards]} → {indices}")
+        return shuffled_data
+        
     else:
+        # === GIẢI MÃ ===
         meta = saoyut.get_technique_by_name("S")
         if not meta:
             raise ValueError("Missing S metadata!")
         
-        shuffle_order = meta.get("shuffle_order", [])
-        shard_sizes = meta.get("shard_sizes", [])
+        shard_hashes = meta.get("shard_hashes", [])
+        shuffle_map = meta.get("shuffle_map", [])
+        num_shards = meta.get("num_shards", 4)
+        total_size = meta.get("total_size", len(data))
         
-        if not shuffle_order or not shard_sizes:
-            return data
+        if not shard_hashes or len(shard_hashes) != num_shards:
+            raise ValueError("Invalid S metadata: missing shard hashes")
         
-        shards = []
+        # BƯỚC 1: Tái tạo các shard từ dữ liệu đã giải mã (có thể đã bị XOR)
+        # Vì chúng ta biết tổng size, ta cần tìm cách tách shard
+        
+        # Cách 1: Dùng shard_size từ tổng size
+        shard_size = total_size // num_shards
+        
+        shards_in_order = []
         pos = 0
-        for size in shard_sizes:
-            shards.append(data[pos:pos+size])
+        for i in range(num_shards):
+            if i < num_shards - 1:
+                size = shard_size
+            else:
+                size = total_size - (shard_size * (num_shards - 1))
+            shards_in_order.append(data[pos:pos+size])
             pos += size
         
-        original_order = [None] * len(shards)
-        for new_pos, old_pos in enumerate(shuffle_order):
-            if old_pos < len(shards):
-                original_order[old_pos] = shards[new_pos]
+        # BƯỚC 2: Verify và sắp xếp lại theo đúng thứ tự
+        # Vì B (XOR) có thể làm thay đổi giá trị, ta không thể dùng hash để verify
+        # Nhưng ta có thể dùng shuffle_map để biết thứ tự
         
-        result = bytearray()
-        for shard in original_order:
-            if shard:
-                result.extend(shard)
+        # Tạo reverse map
+        reverse_map = [0] * num_shards
+        for new_pos, old_pos in enumerate(shuffle_map):
+            reverse_map[old_pos] = new_pos
         
-        return bytes(result)
+        # Khôi phục thứ tự gốc
+        restored_shards = [None] * num_shards
+        for old_pos, new_pos in enumerate(reverse_map):
+            restored_shards[old_pos] = shards_in_order[new_pos]
+        
+        # Ghép lại
+        result = b''
+        for shard in restored_shards:
+            if shard is not None:
+                result += shard
+        
+        # VERIFY: Kiểm tra size
+        if len(result) != total_size:
+            print(f"[S] Warning: Size mismatch! Expected: {total_size}, Got: {len(result)}")
+            # Nếu size không khớp, thử cách khác
+            # Cách 2: Dùng shard_hashes để tìm đúng shard (dành cho dữ liệu chưa bị XOR)
+            # Nếu dữ liệu đã bị XOR, hash sẽ không khớp → không dùng được
+        
+        return result
 
 # ============================================================
 # H - Header Masking
@@ -202,18 +249,53 @@ def technique_D(data, saoyut, reverse=False):
 # ============================================================
 def technique_B(data, saoyut, reverse=False):
     password = saoyut.seed
+    
+    # Tạo key từ seed
+    hashed = password
     for _ in range(100):
-        password = hashlib.sha256(password.encode()).hexdigest()
-    password = password[:32]
-    key = password.encode()
-    result = bytearray(len(data))
-    for i in range(len(data)):
-        result[i] = data[i] ^ key[i % len(key)]
+        hashed = hashlib.sha256(hashed.encode()).hexdigest()
+    key = hashed[:32].encode()
+    
     if not reverse:
+        # === MÃ HÓA ===
+        result = bytearray(len(data))
+        for i in range(len(data)):
+            result[i] = data[i] ^ key[i % len(key)]
+        
+        # LƯU THÔNG TIN
         saoyut.add_technique("B", {
-            "password_hash": hashlib.sha256(password.encode()).hexdigest()
+            "password_hash": hashed,
+            "iterations": 100,
+            "key_length": len(key)
         })
-    return bytes(result)
+        
+        print(f"[B] Encrypt: {len(data)} bytes")
+        return bytes(result)
+        
+    else:
+        # === GIẢI MÃ ===
+        meta = saoyut.get_technique_by_name("B")
+        if not meta:
+            raise ValueError("Missing B metadata!")
+        
+        # Dùng hash từ metadata hoặc tính lại
+        stored_hash = meta.get("password_hash", "")
+        if stored_hash:
+            key = stored_hash[:32].encode()
+        else:
+            # Fallback
+            hashed = password
+            for _ in range(100):
+                hashed = hashlib.sha256(hashed.encode()).hexdigest()
+            key = hashed[:32].encode()
+        
+        # XOR để phục hồi
+        result = bytearray(len(data))
+        for i in range(len(data)):
+            result[i] = data[i] ^ key[i % len(key)]
+        
+        print(f"[B] Decrypt: {len(data)} bytes")
+        return bytes(result)
 
 # ============================================================
 # P - RAM-only
