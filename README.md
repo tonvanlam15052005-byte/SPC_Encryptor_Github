@@ -5,7 +5,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://python.org)
 [![Flask Version](https://img.shields.io/badge/flask-2.3.3-green)](https://flask.palletsprojects.com)
 [![License](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.5.1-red)](https://github.com/tonvanlam15052005-byte/SPC_Encryptor_Github)
+[![Version](https://img.shields.io/badge/version-2.5.3-red)](https://github.com/tonvanlam15052005-byte/SPC_Encryptor_Github)
 
 ---
 
@@ -43,7 +43,7 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 
 ## ✨ Tính năng nổi bật
 
-### 🔐 10 Kỹ thuật mã hóa SPC
+### 🔐 9 Kỹ thuật mã hóa SPC
 
 | Ký hiệu | Tên kỹ thuật | Mô tả |
 |---------|--------------|-------|
@@ -51,23 +51,26 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 | **C** | Cut & Swap | Cắt đôi và đổi chỗ hai nửa dữ liệu |
 | **E** | Enigma | Mã hóa XOR với Seed |
 | **Z** | Zip Hiding | Chèn Header giả `.txt` |
-| **S** | Sharding | Chia thành 4 mảnh, tráo thứ tự |
 | **H** | Header Masking | XOR với key ngẫu nhiên |
 | **D** | Double Fake | Chèn 2 Header giả liên tiếp |
 | **B** | Hashing Chain | Tạo Pass từ băm xích |
 | **P** | RAM-only | Xóa vết trong RAM |
 | **L** | Low Storage | Chia thành Segments, lưu phân tán |
 
+> **Lưu ý**: Kỹ thuật **S (Sharding)** tạm thời được vô hiệu hóa để đảm bảo độ ổn định của hệ thống. Sẽ được kích hoạt lại trong phiên bản tương lai.
+
 ### 🛠️ Các tính năng khác
 
-- ✅ **Ba yếu tố giải mã**: Dữ liệu mã hóa + SAOYUT + Seed
+- ✅ **Bốn yếu tố giải mã**: Dữ liệu mã hóa + SAOYUT + Seed + Segments
 - ✅ **SAOYUT Manager**: Xuất/nhập metadata dạng JSON
 - ✅ **Segment Manager**: Tải lên, tải xuống, xóa segments
 - ✅ **Kéo thả file**: Hỗ trợ .txt, .spc, .saoyut
 - ✅ **3 định dạng output**: Base64, Hex, Plaintext
 - ✅ **Giao diện trực quan**: Kéo thả sắp xếp kỹ thuật
 - ✅ **Segment Size tùy chỉnh**: 1KB → 100MB
-- ✅ **Data ID + Session**: Phân biệt dữ liệu và phiên làm việc
+- ✅ **Data ID + Browser Session**: Phân biệt dữ liệu và phiên làm việc
+- ✅ **TTL tự động xóa**: Segment tự động xóa sau 1 giờ
+- ✅ **Fingerprint**: Gắn segment với thiết bị
 
 ---
 
@@ -76,13 +79,13 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 ### Lưu đồ mã hóa
 
 ```
-Plaintext → R → C → E → Z → S → H → D → B → P → L → Base64
+Plaintext → R → C → E → Z → H → D → B → P → L → Base64
 ```
 
 ### Lưu đồ giải mã
 
 ```
-Base64 → L → P → B → D → H → S → Z → E → C → R → Plaintext
+Base64 → L → P → B → D → H → Z → E → C → R → Plaintext
 ```
 
 ### Tên file Segment
@@ -152,7 +155,7 @@ Mở trình duyệt và truy cập: `http://localhost:5000`
 
 ```bash
 git add .
-git commit -m "SPC Encryptor Pro v2.5.1"
+git commit -m "SPC Encryptor Pro v2.5.3"
 git push
 ```
 
@@ -175,7 +178,9 @@ Bấm **Deploy**. Render sẽ tự động build và chạy ứng dụng.
 
 ```
 SPC_Encryptor/
-├── app.py                    # Flask server (10 kỹ thuật + Segment API)
+├── app.py                    # Flask server (9 kỹ thuật + Segment API)
+├── static/
+│   └── style.css             # CSS responsive
 ├── templates/
 │   └── index.html            # UI Web (Segment Manager, Kéo thả file)
 ├── uploads/                  # File upload tạm
@@ -195,7 +200,7 @@ SPC_Encryptor/
 | **Lý thuyết SPC** | Minvokin Grabiel Xavier (Mr.MR) |
 | **Phục dựng & Phát triển** | SGM (Simple Gray Modules) & KOT/CAT STUDIOS |
 | **Hiện thực hóa Web** | Cộng đồng mã nguồn mở |
-| **Ngày hoàn thành** | 06/08/2026 |
+| **Ngày hoàn thành** | 07/08/2026 |
 
 ---
 
@@ -225,3 +230,17 @@ Mọi đóng góp đều được hoan nghênh! Hãy tạo **Issue** hoặc **Pu
 ---
 
 **⭐ Star dự án này nếu bạn thấy nó hữu ích!**
+```
+
+---
+
+## 📋 TÓM TẮT THAY ĐỔI
+
+| Thay đổi | Mô tả |
+|----------|-------|
+| **Phiên bản** | v2.5.1 → **v2.5.3** |
+| **Số kỹ thuật** | 10 → **9** (loại S) |
+| **Ngày hoàn thành** | 06/08/2026 → **07/08/2026** |
+| **Lưu đồ mã hóa** | Loại bỏ S khỏi chuỗi |
+| **Lưu đồ giải mã** | Loại bỏ S khỏi chuỗi |
+| **Thêm lưu ý** | Giải thích S tạm thời vô hiệu hóa |
