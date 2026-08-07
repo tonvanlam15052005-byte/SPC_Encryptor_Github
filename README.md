@@ -8,7 +8,8 @@
 [![Version](https://img.shields.io/badge/version-2.5.5-red)](https://github.com/tonvanlam15052005-byte/SPC_Encryptor_Github)
 
 ---
-
+## 🌍 Website
+[SPC Encryptor Pro](https://spc-encryptor-github.onrender.com)
 ## 📖 Giới thiệu
 
 **SPC Encryptor Pro** là một hệ thống mã hóa đa tầng, được xây dựng dựa trên lý thuyết **SPC (Super Planet Crypting)** của **Minvokin Grabiel Xavier (Mr.MR)**. Dự án là sự kết hợp giữa lý thuyết bảo mật tiên tiến và công nghệ web hiện đại, cung cấp một công cụ mã hóa mạnh mẽ, linh hoạt và dễ sử dụng.
@@ -22,7 +23,7 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 
 ---
 
-## 🧠 Nguồn gốc và lý thuyết
+## 🧠 Nguồn gốc và lý thuyết (một phần trong nhóm nội bộ của chúng tôi)
 
 ### Lý thuyết gốc: SPC (Super Planet Crypting)
 
