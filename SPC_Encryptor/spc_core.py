@@ -273,7 +273,7 @@ ALL_TECHNIQUES = {
     "C": technique_C,
     "E": technique_E,
     "Z": technique_Z,
-    "S": technique_S,
+    # "S": technique_S,
     "H": technique_H,
     "D": technique_D,
     "B": technique_B,
