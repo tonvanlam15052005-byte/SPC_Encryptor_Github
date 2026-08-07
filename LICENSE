@@ -22,71 +22,146 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-================================================================================
-ACKNOWLEDGMENTS AND CREDITS
-================================================================================
+===============================================================================
 
-This project is the result of collaborative efforts from multiple contributors:
+ACKNOWLEDGMENTS AND CONTRIBUTORS
 
-ORIGINAL THEORY AND CONCEPT
-- Minvokin Grabiel Xavier (Mr.MR) - Creator and founder of the SPC
-  (Super Planet Crypting) theory. The philosophical and mathematical
-  foundation of this system was developed by Mr.MR.
+===============================================================================
 
-ARCHITECTURE RESTORATION AND RECONSTRUCTION
-- SGM (Simple Gray Modules) - System architecture analysis, restoration,
-  and reconstruction of the original SPC theory.
-- KOT/CAT STUDIOS - System architecture analysis, restoration, and
-  reconstruction.
+This project acknowledges the following individuals and organizations for their
+contributions to the SPC Encryptor Pro software and the underlying SPC theory.
 
-DEVELOPMENT AND OPTIMIZATION
-- Open Source Community - Web implementation, optimization, and Vietnamese
-  localization.
-- AI Tools - Supplementary code assistance, debugging support, and
-  performance optimization.
+1. ORIGINAL THEORY
+   Minvokin Grabiel Xavier (Mr.MR)
+   - Creator and founder of the SPC (Super Planet Crypting) theory.
+   - The philosophical, mathematical, and cryptographic foundation of this
+     system was developed by Mr.MR.
+   - The name "SAOYUT" and all SPC-related terminology are the intellectual
+     property of Mr.MR and the SPC community.
 
-TESTING AND QUALITY ASSURANCE
-- Testing Team - Real-world testing, bug detection, and issue reporting.
-- Idea Contributors - Innovation in restoration and optimization strategies.
-- Quality Monitors - Error verification and validation oversight.
+2. ARCHITECTURE RESTORATION
+   SGM (Simple Gray Modules)
+   - System architecture analysis and restoration.
+   - Reconstruction of the original SPC theory into a practical framework.
 
-================================================================================
-SPECIAL NOTES
-================================================================================
+   KOT/CAT STUDIOS
+   - System architecture analysis and restoration.
+   - Reconstruction and optimization of core cryptographic workflows.
 
-1. This software is distributed for non-commercial, educational, and research
-   purposes only. Any commercial use requires explicit permission.
+3. DEVELOPMENT AND IMPLEMENTATION
+   Open Source Community Contributors
+   - Web application implementation (Flask, HTML, CSS, JavaScript).
+   - Vietnamese localization and internationalization.
+   - UI/UX design and responsive development.
 
-2. All original credits to Mr.MR and the SPC theory must remain intact in all
-   copies or substantial portions of the Software.
+   AI-Assisted Development Tools
+   - Supplementary code generation and optimization.
+   - Debugging assistance and performance analysis.
+   - Documentation drafting and review.
+   - Note: All AI contributions were supervised and reviewed by human
+     developers. All final decisions regarding architecture, security,
+     and functionality were made by human contributors.
 
-3. Modifications and redistributions must retain this license and credit notices
-   in their entirety.
+4. TESTING AND QUALITY ASSURANCE
+   Testing Team Members
+   - Real-world testing across multiple environments.
+   - Bug detection and issue reporting.
 
-4. AI tools were used as supplementary assistance only. All architectural and
-   creative decisions were made by human contributors.
+   Quality Monitors
+   - Error verification and validation oversight.
+   - Critical bug identification and resolution tracking.
+   - Special acknowledgment for identifying and resolving the S + B
+     (Sharding + Hashing Chain) compatibility issue.
 
-5. The SPC theory, its principles, and the name "SAOYUT" remain the intellectual
-   property of Mr.MR and the SPC community.
+===============================================================================
 
-================================================================================
-VERSION INFORMATION
-================================================================================
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
-Current Version     : v2.5.1
-Release Date        : August 6, 2026
-SPC Standard        : SPC L R C E Z S H B D P A6+
-Status              : Stable Release
+===============================================================================
 
-================================================================================
-ACKNOWLEDGMENT FROM THE DEVELOPER
-================================================================================
+1. GRANT OF LICENSE
+   Subject to the terms and conditions of this License, the SPC Encryptor Pro
+   Team hereby grants to any person obtaining a copy of this Software a
+   perpetual, worldwide, non-exclusive, royalty-free license to use, copy,
+   modify, merge, publish, distribute, sublicense, and/or sell copies of the
+   Software, subject to the following conditions.
 
-"We stand on the shoulders of giants. Mr.MR gave us the SPC theory,
-and the community gave it life. This project is a tribute to the spirit
-of open collaboration and the belief that security should be accessible
-to everyone."
+2. ATTRIBUTION REQUIREMENT
+   All copies or substantial portions of the Software must retain the
+   following attributions:
+   a) This copyright notice and permission notice.
+   b) The acknowledgment section above, in its entirety.
+   c) Credit to Minvokin Grabiel Xavier (Mr.MR) as the creator of the SPC
+      theory.
+   d) Credit to SGM and KOT/CAT STUDIOS for architectural restoration.
+
+3. NO ENDORSEMENT
+   This License does not grant permission to use the names of the SPC
+   Encryptor Pro Team, Mr.MR, SGM, KOT/CAT STUDIOS, or any contributors for
+   promotional purposes without prior written consent.
+
+4. RESTRICTIONS ON USE
+   This Software is provided for non-commercial, educational, and research
+   purposes. Commercial use of the Software, including but not limited to
+   selling, licensing, or incorporating into commercial products, requires
+   explicit written permission from the SPC Encryptor Pro Team.
+
+5. MODIFICATION AND REDISTRIBUTION
+   Modified versions of the Software must:
+   a) Clearly indicate that changes have been made to the original Software.
+   b) Retain all original credit notices and acknowledgments.
+   c) Be distributed under the same MIT License terms.
+
+6. NO WARRANTY
+   The Software is provided "AS IS", without warranty of any kind, express or
+   implied. The entire risk as to the quality and performance of the Software
+   is with the user.
+
+7. LIMITATION OF LIABILITY
+   In no event shall the SPC Encryptor Pro Team, Mr.MR, SGM, KOT/CAT STUDIOS,
+   or any contributors be liable for any claim, damages, or other liability,
+   whether in an action of contract, tort, or otherwise, arising from, out of,
+   or in connection with the Software or the use of the Software.
+
+8. INTELLECTUAL PROPERTY
+   The SPC theory, including but not limited to its principles, algorithms,
+   terminology (including "SAOYUT"), and underlying mathematics, remains the
+   intellectual property of Minvokin Grabiel Xavier (Mr.MR) and the SPC
+   community. This License does not transfer ownership of the SPC theory.
+
+===============================================================================
+
+SPECIAL ACKNOWLEDGMENT
+
+===============================================================================
+
+"We stand on the shoulders of giants. Mr.MR gave us the SPC theory, and the
+community gave it life. This project is a tribute to the spirit of open
+collaboration, the pursuit of knowledge, and the belief that cryptographic
+security should be accessible to everyone."
 
 - SPC Encryptor Pro Team
 
-================================================================================
+===============================================================================
+
+VERSION AND RELEASE INFORMATION
+
+===============================================================================
+
+Software Version  : v2.5.5
+Release Date      : August 7, 2026
+SPC Standard      : SPC L R C E Z S H B D P A6+
+License Type      : MIT License with Attribution and Acknowledgment
+Status            : Stable Release - All 10 techniques verified
+
+===============================================================================
+
+CONTACT INFORMATION
+
+===============================================================================
+
+For questions regarding licensing, commercial use, or permissions, please
+contact the SPC Encryptor Pro Team through the official repository:
+https://github.com/tonvanlam15052005-byte/SPC_Encryptor_Github
+
+===============================================================================
