@@ -62,7 +62,7 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 ### 🛠️ Các tính năng khác
 
 - ✅ **Bốn yếu tố giải mã**: Dữ liệu mã hóa + SAOYUT + Seed + Segments
-- ✅ **SAOYUT Manager**: Xuất/nhập metadata dạng JSON
+- ✅ **SAOYUT Manager**: Xuất/nhập metadata dưới dạng file JSON đơn giản
 - ✅ **Segment Manager**: Tải lên, tải xuống, xóa segments
 - ✅ **Kéo thả file**: Hỗ trợ .txt, .spc, .saoyut
 - ✅ **3 định dạng output**: Base64, Hex, Plaintext
@@ -108,7 +108,7 @@ Trong đó:
 | Biện pháp | Mô tả |
 |-----------|-------|
 | **Seed** | Khóa chính do người dùng tự tạo, không lưu trên server |
-| **SAOYUT** | Metadata được mã hóa 5 bước, chỉ người dùng có |
+| **SAOYUT** | File JSON chứa metadata, chỉ người dùng có quyền truy cập |
 | **Session** | Phiên tự động hết hạn sau 1 giờ |
 | **Segment TTL** | Segment tự động xóa sau 1 giờ |
 | **Fingerprint** | Gắn segment với thiết bị tạo ra nó |
