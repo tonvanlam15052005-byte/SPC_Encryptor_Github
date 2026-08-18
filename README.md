@@ -5,11 +5,12 @@
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://python.org)
 [![Flask Version](https://img.shields.io/badge/flask-2.3.3-green)](https://flask.palletsprojects.com)
 [![License](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.5.5-red)](https://github.com/tonvanlam15052005-byte/SPC_Encryptor_Github)
+[![Version](https://img.shields.io/badge/version-2.6.0-red)](https://github.com/tonvanlam15052005-byte/SPC_Encryptor_Github)
 
 ---
 ## 🌍 Website
 [SPC Encryptor Pro](https://spc-encryptor-github.onrender.com)
+
 ## 📖 Giới thiệu
 
 **SPC Encryptor Pro** là một hệ thống mã hóa đa tầng, được xây dựng dựa trên lý thuyết **SPC (Super Planet Crypting)** của **Minvokin Grabiel Xavier (Mr.MR)**. Dự án là sự kết hợp giữa lý thuyết bảo mật tiên tiến và công nghệ web hiện đại, cung cấp một công cụ mã hóa mạnh mẽ, linh hoạt và dễ sử dụng.
@@ -59,7 +60,7 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 | **P** | RAM-only | Xóa vết trong RAM | ✅ Ổn định |
 | **L** | Low Storage | Chia thành Segments, lưu phân tán | ✅ Ổn định |
 
-> **🎉 Thành công**: Tất cả 10 kỹ thuật đã được kiểm tra và hoạt động ổn định, bao gồm cả **S (Sharding)** và **B (Hashing Chain)** khi kết hợp với nhau. Đã sửa thành công lỗi tương thích giữa S và B.
+> **🎉 Thành công**: Tất cả 10 kỹ thuật đã được kiểm tra và hoạt động ổn định 100%. Đặc biệt, kỹ thuật **S (Sharding)** đã được sửa lỗi hoàn toàn, bao gồm cả trường hợp sử dụng đơn lẻ và kết hợp với các kỹ thuật khác như **B (Hashing Chain)**.
 
 ### 🛠️ Các tính năng khác
 
@@ -161,7 +162,7 @@ Mở trình duyệt và truy cập: `http://localhost:5000`
 
 ```bash
 git add .
-git commit -m "SPC Encryptor Pro v2.5.5"
+git commit -m "SPC Encryptor Pro v2.6.0"
 git push
 ```
 
@@ -202,7 +203,7 @@ SPC_Encryptor/
 
 ## 📝 Lịch sử phiên bản
 
-| Phiên bản | Ngày | Thay đổi |
+| Phiên bản | Ngày (Tương đối)| Thay đổi |
 |-----------|------|----------|
 | v1.0.0 | 01/08/2026 | Khởi tạo dự án |
 | v2.0.0 | 02/08/2026 | Thêm 10 kỹ thuật R, C, E, Z, S, H, D, B, P, L |
@@ -211,7 +212,8 @@ SPC_Encryptor/
 | v2.3.0 | 05/08/2026 | Thêm Data ID + Browser Session |
 | v2.4.0 | 06/08/2026 | Thêm TTL & Cleanup |
 | v2.5.0 | 06/08/2026 | Thêm Fingerprint + Responsive UI |
-| **v2.5.5** | **07/08/2026** | **Sửa lỗi S + B tương thích. Tất cả 10 kỹ thuật hoạt động ổn định 100%** |
+| v2.5.5 | 07/08/2026 | Sửa lỗi tương thích S + B |
+| **v2.6.0** | **08/08/2026** | **Sửa hoàn chỉnh lỗi kỹ thuật S (Sharding). Tất cả 10 kỹ thuật hoạt động ổn định 100%** |
 
 ---
 
@@ -222,7 +224,7 @@ SPC_Encryptor/
 | **Lý thuyết SPC** | Minvokin Grabiel Xavier (Mr.MR) |
 | **Phục dựng & Phát triển** | SGM (Simple Gray Modules) & KOT/CAT STUDIOS |
 | **Hiện thực hóa Web** | Cộng đồng mã nguồn mở |
-| **Ngày hoàn thành** | 07/08/2026 |
+| **Ngày hoàn thành** | 08/08/2026 |
 
 ---
 
@@ -252,19 +254,18 @@ Mọi đóng góp đều được hoan nghênh! Hãy tạo **Issue** hoặc **Pu
 ---
 
 **⭐ Star dự án này nếu bạn thấy nó hữu ích!**
-```
 
 ---
 
-## ✅ TÓM TẮT CẬP NHẬT README
+## 📊 SO SÁNH THAY ĐỔI
 
-| Thay đổi | Mô tả |
-|----------|-------|
-| **Phiên bản** | v2.5.5 |
-| **Số kỹ thuật** | 10 kỹ thuật (bao gồm S) |
-| **S + B** | Đã sửa lỗi tương thích |
-| **Badge version** | Cập nhật lên 2.5.5 |
-| **Lưu đồ** | Bao gồm cả S |
-| **Lịch sử phiên bản** | Thêm dòng v2.5.5 |
-| **Trạng thái kỹ thuật** | Tất cả 10 kỹ thuật đều ✅ Ổn định |
-| **Lưu ý quan trọng** | Thêm lưu ý về fingerprint không khóa cứng |
+| Mục | Cũ | Mới |
+|-----|-----|-----|
+| **Phiên bản** | v2.5.5 | **v2.6.0** ✅ |
+| **Badge** | 2.5.5 | **2.6.0** ✅ |
+| **Lịch sử** | 7 dòng | **8 dòng** ✅ |
+| **Ngày** | 07/08/2026 | **08/08/2026** ✅ |
+| **Mô tả S** | "Sửa lỗi S + B" | **"Sửa hoàn chỉnh lỗi kỹ thuật S (Sharding)"** ✅ |
+| **Commit** | "SPC Encryptor Pro v2.5.5" | **"SPC Encryptor Pro v2.6.0"** ✅ |
+
+
