@@ -103,43 +103,45 @@ def technique_Z(data, saoyut, reverse=False):
         return data[fake_len:]
 
 # ============================================================
-# S - Sharding
+# S - Sharding (BẢN CHÍNH XÁC - LƯU ĐÚNG METADATA)
 # ============================================================
 def technique_S(data, saoyut, reverse=False):
     if not reverse:
         # === MÃ HÓA ===
         num_shards = 4
-        shard_size = len(data) // num_shards
+        total_size = len(data)
+        shard_size = total_size // num_shards
         
-        # Chia thành shard
+        # Chia thành 4 mảnh
         shards = []
         for i in range(num_shards):
             start = i * shard_size
-            end = start + shard_size if i < num_shards - 1 else len(data)
+            if i == num_shards - 1:
+                end = total_size
+            else:
+                end = start + shard_size
             shards.append(data[start:end])
         
-        # LƯU THÔNG TIN DỰA TRÊN CONTENT, KHÔNG PHẢI VỊ TRÍ
-        shard_hashes = [hashlib.sha256(s).hexdigest() for s in shards]
+        # Lưu kích thước từng mảnh
+        shard_sizes = [len(s) for s in shards]
         
-        # Shuffle
-        indices = list(range(num_shards))
-        random.shuffle(indices)
+        # Tạo shuffle_map ngẫu nhiên
+        shuffle_map = list(range(num_shards))
+        random.shuffle(shuffle_map)
         
         # Ghép theo thứ tự mới
         shuffled_data = b''
-        for idx in indices:
+        for idx in shuffle_map:
             shuffled_data += shards[idx]
         
-        # LƯU METADATA ĐẦY ĐỦ
+        # Lưu metadata đầy đủ
         saoyut.add_technique("S", {
             "num_shards": num_shards,
-            "shard_hashes": shard_hashes,      # Hash của từng shard (dùng để verify)
-            "shuffle_map": indices,             # Thứ tự mới
-            "shard_count": num_shards,
-            "total_size": len(data)
+            "shard_sizes": shard_sizes,
+            "shuffle_map": shuffle_map,
+            "total_size": total_size
         })
         
-        print(f"[S] Encrypt: {[len(s) for s in shards]} → {indices}")
         return shuffled_data
         
     else:
@@ -148,56 +150,41 @@ def technique_S(data, saoyut, reverse=False):
         if not meta:
             raise ValueError("Missing S metadata!")
         
-        shard_hashes = meta.get("shard_hashes", [])
-        shuffle_map = meta.get("shuffle_map", [])
-        num_shards = meta.get("num_shards", 4)
-        total_size = meta.get("total_size", len(data))
+        num_shards = meta["num_shards"]
+        shard_sizes = meta["shard_sizes"]
+        shuffle_map = meta["shuffle_map"]
+        total_size = meta["total_size"]
         
-        if not shard_hashes or len(shard_hashes) != num_shards:
-            raise ValueError("Invalid S metadata: missing shard hashes")
-        
-        # BƯỚC 1: Tái tạo các shard từ dữ liệu đã giải mã (có thể đã bị XOR)
-        # Vì chúng ta biết tổng size, ta cần tìm cách tách shard
-        
-        # Cách 1: Dùng shard_size từ tổng size
-        shard_size = total_size // num_shards
-        
-        shards_in_order = []
+        # ✅ BƯỚC 1: Tách dữ liệu theo shuffle_map
+        shards_in_shuffled_order = []
         pos = 0
-        for i in range(num_shards):
-            if i < num_shards - 1:
-                size = shard_size
+        for shard_idx in shuffle_map:
+            if shard_idx < len(shard_sizes):
+                size = shard_sizes[shard_idx]
+                shards_in_shuffled_order.append(data[pos:pos+size])
+                pos += size
             else:
-                size = total_size - (shard_size * (num_shards - 1))
-            shards_in_order.append(data[pos:pos+size])
-            pos += size
+                # Fallback nếu shard_idx không hợp lệ
+                shards_in_shuffled_order.append(b'')
         
-        # BƯỚC 2: Verify và sắp xếp lại theo đúng thứ tự
-        # Vì B (XOR) có thể làm thay đổi giá trị, ta không thể dùng hash để verify
-        # Nhưng ta có thể dùng shuffle_map để biết thứ tự
+        # ✅ BƯỚC 2: Khôi phục thứ tự gốc
+        restored = [b''] * num_shards  # Khởi tạo với bytes rỗng thay vì None
         
-        # Tạo reverse map
-        reverse_map = [0] * num_shards
         for new_pos, old_pos in enumerate(shuffle_map):
-            reverse_map[old_pos] = new_pos
+            if new_pos < len(shards_in_shuffled_order) and old_pos < num_shards:
+                restored[old_pos] = shards_in_shuffled_order[new_pos]
         
-        # Khôi phục thứ tự gốc
-        restored_shards = [None] * num_shards
-        for old_pos, new_pos in enumerate(reverse_map):
-            restored_shards[old_pos] = shards_in_order[new_pos]
+        # ✅ BƯỚC 3: Ghép lại
+        result = b''.join(restored)  # join an toàn với bytes
         
-        # Ghép lại
-        result = b''
-        for shard in restored_shards:
-            if shard is not None:
-                result += shard
-        
-        # VERIFY: Kiểm tra size
+        # ✅ Kiểm tra
         if len(result) != total_size:
             print(f"[S] Warning: Size mismatch! Expected: {total_size}, Got: {len(result)}")
-            # Nếu size không khớp, thử cách khác
-            # Cách 2: Dùng shard_hashes để tìm đúng shard (dành cho dữ liệu chưa bị XOR)
-            # Nếu dữ liệu đã bị XOR, hash sẽ không khớp → không dùng được
+            # Nếu mismatch, pad hoặc trim
+            if len(result) < total_size:
+                result += b'\x00' * (total_size - len(result))
+            else:
+                result = result[:total_size]
         
         return result
 
@@ -355,7 +342,7 @@ ALL_TECHNIQUES = {
     "C": technique_C,
     "E": technique_E,
     "Z": technique_Z,
-    # "S": technique_S,
+    "S": technique_S,
     "H": technique_H,
     "D": technique_D,
     "B": technique_B,
