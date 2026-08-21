@@ -1,0 +1,1421 @@
+# app.py - SPC Encryptor Pro v3.0 (Sửa lỗi S + UI mới)
+from flask import Flask, render_template, request, jsonify, send_file
+import hashlib
+import os
+import random
+import json
+import base64
+import traceback
+import zipfile
+import io
+import time
+import threading
+from werkzeug.utils import secure_filename
+from functools import wraps
+
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
+# ============================================================
+# CẤU HÌNH
+# ============================================================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'uploads')
+app.config['DOWNLOAD_FOLDER'] = os.path.join(BASE_DIR, 'downloads')
+app.config['SEGMENT_FOLDER'] = os.path.join(BASE_DIR, 'segments')
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
+app.config['DEFAULT_SEGMENT_SIZE'] = 1024 * 1024
+app.config['SESSION_TIMEOUT'] = 3600
+
+# Tạo thư mục
+for folder in ['UPLOAD_FOLDER', 'DOWNLOAD_FOLDER', 'SEGMENT_FOLDER']:
+    path = app.config[folder]
+    if not os.path.exists(path):
+        os.makedirs(path)
+        print(f"[INIT] Created folder: {path}")
+
+# ============================================================
+# SESSION MANAGER
+# ============================================================
+class SessionManager:
+    def __init__(self):
+        self.sessions = {}
+        self.timeout = app.config['SESSION_TIMEOUT']
+        self._lock = threading.Lock()
+    
+    def create_session(self, fingerprint=''):
+        session_id = hashlib.md5(f"{time.time()}{random.randint(1, 999999)}".encode()).hexdigest()[:16]
+        with self._lock:
+            self.sessions[session_id] = {
+                'created': time.time(),
+                'fingerprint': fingerprint,
+                'active': True
+            }
+        return session_id
+    
+    def get_session(self, session_id):
+        with self._lock:
+            if session_id not in self.sessions:
+                return None
+            session_data = self.sessions[session_id]
+            if time.time() - session_data['created'] > self.timeout:
+                self._cleanup_session(session_id)
+                return None
+            return session_data
+    
+    def update_fingerprint(self, session_id, fingerprint):
+        with self._lock:
+            if session_id in self.sessions:
+                self.sessions[session_id]['fingerprint'] = fingerprint
+                return True
+            return False
+    
+    def is_valid(self, session_id):
+        return self.get_session(session_id) is not None
+    
+    def _cleanup_session(self, session_id):
+        """Xóa session và tất cả segment liên quan"""
+        if session_id in self.sessions:
+            segment_dir = app.config['SEGMENT_FOLDER']
+            if os.path.exists(segment_dir):
+                for filename in os.listdir(segment_dir):
+                    if f'_{session_id}_' in filename and filename.endswith('.dat'):
+                        try:
+                            os.remove(os.path.join(segment_dir, filename))
+                            print(f"[CLEANUP] Removed segment: {filename}")
+                        except Exception as e:
+                            print(f"[CLEANUP] Error removing {filename}: {e}")
+            del self.sessions[session_id]
+            print(f"[CLEANUP] Session {session_id} cleaned")
+    
+    def cleanup_expired(self):
+        now = time.time()
+        expired = []
+        with self._lock:
+            for session_id, data in list(self.sessions.items()):
+                if now - data['created'] > self.timeout:
+                    expired.append(session_id)
+        
+        for session_id in expired:
+            self._cleanup_session(session_id)
+    
+    def force_cleanup(self, session_id):
+        if session_id:
+            self._cleanup_session(session_id)
+
+session_manager = SessionManager()
+
+# ============================================================
+# DECORATOR
+# ============================================================
+def require_session(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        session_id = request.args.get('session_id')
+        if not session_id and request.method == 'POST':
+            if request.form:
+                session_id = request.form.get('session_id')
+            elif request.json:
+                session_id = request.json.get('session_id')
+        
+        if not session_id:
+            return jsonify({
+                'success': False, 
+                'error': 'Session ID required',
+                'code': 'SESSION_REQUIRED'
+            }), 401
+        
+        if not session_manager.is_valid(session_id):
+            return jsonify({
+                'success': False, 
+                'error': 'Invalid or expired session',
+                'code': 'SESSION_INVALID'
+            }), 401
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ============================================================
+# CLEANUP JOB
+# ============================================================
+def cleanup_job():
+    while True:
+        time.sleep(1800)
+        session_manager.cleanup_expired()
+        print("[CLEANUP] Cleanup job completed")
+
+cleanup_thread = threading.Thread(target=cleanup_job, daemon=True)
+cleanup_thread.start()
+
+# ============================================================
+# SAOYUT MANAGER
+# ============================================================
+class SAOYUT:
+    def __init__(self, seed):
+        self.seed = seed
+        self.data = {
+            "seed_hash": hashlib.sha256(seed.encode()).hexdigest(),
+            "techniques": []
+        }
+    
+    def add_technique(self, name, metadata):
+        self.data["techniques"].append({"name": name, "metadata": metadata})
+    
+    def get_technique_by_name(self, name):
+        for tech in self.data["techniques"]:
+            if tech["name"] == name:
+                return tech["metadata"]
+        return {}
+    
+    def export(self):
+        return self.data
+
+# ============================================================
+# CÁC KỸ THUẬT (10 KỸ THUẬT: R, C, E, Z, S, H, D, B, P, L)
+# ============================================================
+def technique_R(data, saoyut, reverse=False):
+    if not reverse:
+        header_size = min(16, len(data))
+        header = data[:header_size]
+        body = data[header_size:]
+        saoyut.add_technique("R", {
+            "header": header.hex(),
+            "header_size": header_size,
+            "original_size": len(data)
+        })
+        return body
+    else:
+        meta = saoyut.get_technique_by_name("R")
+        if not meta:
+            raise ValueError("Missing R metadata!")
+        header = bytes.fromhex(meta["header"])
+        return header + data
+
+def technique_C(data, saoyut, reverse=False):
+    if not reverse:
+        mid = len(data) // 2
+        first = data[:mid]
+        second = data[mid:]
+        saoyut.add_technique("C", {
+            "cut_point": mid,
+            "first_len": len(first),
+            "second_len": len(second)
+        })
+        return second + first
+    else:
+        meta = saoyut.get_technique_by_name("C")
+        if not meta:
+            raise ValueError("Missing C metadata!")
+        second_len = meta["second_len"]
+        second = data[:second_len]
+        first = data[second_len:]
+        return first + second
+
+def technique_E(data, saoyut, reverse=False):
+    key = saoyut.seed.encode()
+    result = bytearray(len(data))
+    for i in range(len(data)):
+        result[i] = data[i] ^ key[i % len(key)]
+    if not reverse:
+        saoyut.add_technique("E", {})
+    return bytes(result)
+
+def technique_Z(data, saoyut, reverse=False):
+    if not reverse:
+        fake = b"TXT_HEADER:"
+        saoyut.add_technique("Z", {
+            "fake_header": fake.hex(),
+            "fake_len": len(fake)
+        })
+        return fake + data
+    else:
+        meta = saoyut.get_technique_by_name("Z")
+        if not meta:
+            raise ValueError("Missing Z metadata!")
+        fake_len = meta.get("fake_len", 11)
+        return data[fake_len:]
+
+def technique_S(data, saoyut, reverse=False):
+    if not reverse:
+        # === MÃ HÓA ===
+        num_shards = 4
+        total_size = len(data)
+        shard_size = total_size // num_shards
+        
+        # Chia thành 4 mảnh
+        shards = []
+        for i in range(num_shards):
+            start = i * shard_size
+            if i == num_shards - 1:
+                end = total_size
+            else:
+                end = start + shard_size
+            shards.append(data[start:end])
+        
+        # Lưu kích thước từng mảnh
+        shard_sizes = [len(s) for s in shards]
+        
+        # Tạo shuffle_map ngẫu nhiên
+        shuffle_map = list(range(num_shards))
+        random.shuffle(shuffle_map)
+        
+        # Ghép theo thứ tự mới
+        shuffled_data = b''
+        for idx in shuffle_map:
+            shuffled_data += shards[idx]
+        
+        # Lưu metadata đầy đủ
+        saoyut.add_technique("S", {
+            "num_shards": num_shards,
+            "shard_sizes": shard_sizes,
+            "shuffle_map": shuffle_map,
+            "total_size": total_size
+        })
+        
+        return shuffled_data
+        
+    else:
+        # === GIẢI MÃ ===
+        meta = saoyut.get_technique_by_name("S")
+        if not meta:
+            raise ValueError("Missing S metadata!")
+        
+        num_shards = meta["num_shards"]
+        shard_sizes = meta["shard_sizes"]
+        shuffle_map = meta["shuffle_map"]
+        total_size = meta["total_size"]
+        
+        # ✅ BƯỚC 1: Tách dữ liệu theo shuffle_map
+        shards_in_shuffled_order = []
+        pos = 0
+        for shard_idx in shuffle_map:
+            if shard_idx < len(shard_sizes):
+                size = shard_sizes[shard_idx]
+                shards_in_shuffled_order.append(data[pos:pos+size])
+                pos += size
+            else:
+                # Fallback nếu shard_idx không hợp lệ
+                shards_in_shuffled_order.append(b'')
+        
+        # ✅ BƯỚC 2: Khôi phục thứ tự gốc
+        restored = [b''] * num_shards  # Khởi tạo với bytes rỗng thay vì None
+        
+        for new_pos, old_pos in enumerate(shuffle_map):
+            if new_pos < len(shards_in_shuffled_order) and old_pos < num_shards:
+                restored[old_pos] = shards_in_shuffled_order[new_pos]
+        
+        # ✅ BƯỚC 3: Ghép lại
+        result = b''.join(restored)  # join an toàn với bytes
+        
+        # ✅ Kiểm tra
+        if len(result) != total_size:
+            print(f"[S] Warning: Size mismatch! Expected: {total_size}, Got: {len(result)}")
+            # Nếu mismatch, pad hoặc trim
+            if len(result) < total_size:
+                result += b'\x00' * (total_size - len(result))
+            else:
+                result = result[:total_size]
+        
+        return result
+
+def technique_H(data, saoyut, reverse=False):
+    if not reverse:
+        key = bytes([random.randint(0, 255) for _ in range(16)])
+        result = bytearray(len(data))
+        for i in range(len(data)):
+            result[i] = data[i] ^ key[i % len(key)]
+        saoyut.add_technique("H", {"xor_key": key.hex()})
+        return bytes(result)
+    else:
+        meta = saoyut.get_technique_by_name("H")
+        if not meta:
+            raise ValueError("Missing H metadata!")
+        key = bytes.fromhex(meta["xor_key"])
+        result = bytearray(len(data))
+        for i in range(len(data)):
+            result[i] = data[i] ^ key[i % len(key)]
+        return bytes(result)
+
+def technique_D(data, saoyut, reverse=False):
+    if not reverse:
+        fake1 = b"PK\x03\x04"
+        fake2 = b"\x89PNG\r\n\x1a\n"
+        saoyut.add_technique("D", {
+            "fake1": fake1.hex(),
+            "fake2": fake2.hex(),
+            "fake1_len": len(fake1),
+            "fake2_len": len(fake2),
+            "total_fake_len": len(fake1) + len(fake2)
+        })
+        return fake1 + fake2 + data
+    else:
+        meta = saoyut.get_technique_by_name("D")
+        if not meta:
+            raise ValueError("Missing D metadata!")
+        total_fake_len = meta.get("total_fake_len", 12)
+        return data[total_fake_len:]
+
+def technique_B(data, saoyut, reverse=False):
+    password = saoyut.seed
+    
+    # Tạo key từ seed
+    hashed = password
+    for _ in range(100):
+        hashed = hashlib.sha256(hashed.encode()).hexdigest()
+    key = hashed[:32].encode()
+    
+    if not reverse:
+        # === MÃ HÓA ===
+        result = bytearray(len(data))
+        for i in range(len(data)):
+            result[i] = data[i] ^ key[i % len(key)]
+        
+        # LƯU THÔNG TIN
+        saoyut.add_technique("B", {
+            "password_hash": hashed,
+            "iterations": 100,
+            "key_length": len(key)
+        })
+        
+        print(f"[B] Encrypt: {len(data)} bytes")
+        return bytes(result)
+        
+    else:
+        # === GIẢI MÃ ===
+        meta = saoyut.get_technique_by_name("B")
+        if not meta:
+            raise ValueError("Missing B metadata!")
+        
+        # Dùng hash từ metadata hoặc tính lại
+        stored_hash = meta.get("password_hash", "")
+        if stored_hash:
+            key = stored_hash[:32].encode()
+        else:
+            # Fallback
+            hashed = password
+            for _ in range(100):
+                hashed = hashlib.sha256(hashed.encode()).hexdigest()
+            key = hashed[:32].encode()
+        
+        # XOR để phục hồi
+        result = bytearray(len(data))
+        for i in range(len(data)):
+            result[i] = data[i] ^ key[i % len(key)]
+        
+        print(f"[B] Decrypt: {len(data)} bytes")
+        return bytes(result)
+
+def technique_P(data, saoyut, reverse=False):
+    if not reverse:
+        saoyut.add_technique("P", {"ram_only": True})
+    return data
+
+def technique_L(data, saoyut, reverse=False):
+    if not reverse:
+        # Tạo data_id (danh tính dữ liệu) - 32 ký tự hex
+        data_id = hashlib.sha256(f"{time.time()}{random.randint(1, 999999)}".encode()).hexdigest()[:32]
+        segment_size = app.config['DEFAULT_SEGMENT_SIZE']
+        segments = []
+        segment_hashes = []
+        
+        for i in range(0, len(data), segment_size):
+            segment = data[i:i+segment_size]
+            segments.append(segment)
+            segment_hashes.append(hashlib.sha256(segment).hexdigest())
+        
+        # SAOYUT chỉ lưu data_id (danh tính dữ liệu)
+        saoyut.add_technique("L", {
+            "num_segments": len(segments),
+            "segment_sizes": [len(s) for s in segments],
+            "segment_hashes": segment_hashes,
+            "segment_size": segment_size,
+            "data_id": data_id
+        })
+        
+        # Lấy browser_session_id từ context (nếu có)
+        browser_session_id = None
+        if 'browser_session_id' in saoyut.data:
+            browser_session_id = saoyut.data.get('browser_session_id')
+        
+        # Tạo file segment với data_id và session_id
+        segment_dir = app.config['SEGMENT_FOLDER']
+        os.makedirs(segment_dir, exist_ok=True)
+        
+        for i, segment in enumerate(segments):
+            if browser_session_id:
+                segment_path = os.path.join(segment_dir, f"segment_{data_id}_{browser_session_id}_{i+1}.dat")
+            else:
+                segment_path = os.path.join(segment_dir, f"segment_{data_id}_{i+1}.dat")
+            with open(segment_path, 'wb') as f:
+                f.write(segment)
+            print(f"[DEBUG] Created segment: {os.path.basename(segment_path)}")
+        
+        print(f"[DEBUG] L technique created with data_id: {data_id}")
+        
+        return data
+    else:
+        meta = saoyut.get_technique_by_name("L")
+        if not meta:
+            raise ValueError("Missing L metadata!")
+        
+        data_id = meta.get("data_id", "")
+        if not data_id:
+            raise ValueError("Missing data_id in SAOYUT!")
+        
+        return data
+# Thêm vào app.py - Hàm xử lý đặc biệt cho S + B
+
+def handle_s_b_compatibility(data, saoyut_data, seed, technique_order, reverse=False):
+    """
+    Xử lý đặc biệt khi S và B cùng tồn tại
+    """
+    # Kiểm tra có cả S và B không
+    has_S = 'S' in technique_order
+    has_B = 'B' in technique_order
+    
+    if not (has_S and has_B):
+        return None  # Không cần xử lý đặc biệt
+    
+    # Lấy metadata của S và B
+    s_meta = None
+    b_meta = None
+    
+    for tech in saoyut_data.get('techniques', []):
+        if tech['name'] == 'S':
+            s_meta = tech['metadata']
+        elif tech['name'] == 'B':
+            b_meta = tech['metadata']
+    
+    if not s_meta or not b_meta:
+        return None
+    
+    print("[COMPAT] Detected S + B combination")
+    print(f"[COMPAT] S: {s_meta}")
+    print(f"[COMPAT] B: {b_meta}")
+    
+    # Nếu đang giải mã (reverse=True)
+    if reverse:
+        # Khi giải mã, S và B cần xử lý theo thứ tự ngược lại
+        # Nhưng vì chúng ta đã xử lý trong spc_decrypt_with_order,
+        # ta chỉ cần đảm bảo metadata của S được bảo toàn
+        
+        # LƯU Ý: S cần biết shard_sizes, nhưng B có thể làm thay đổi dữ liệu
+        # Giải pháp: S dùng total_size để tái tạo shard, không dùng shard_sizes
+        
+        s_meta['use_total_size'] = True  # Đánh dấu dùng total_size thay vì shard_sizes
+        
+        return {
+            's_meta': s_meta,
+            'b_meta': b_meta
+        }
+    
+    return None
+
+# ============================================================
+# DANH SÁCH KỸ THUẬT (ĐÃ BẬT S)
+# ============================================================
+ALL_TECHNIQUES = {
+    "R": technique_R,
+    "C": technique_C,
+    "E": technique_E,
+    "Z": technique_Z,
+    "S": technique_S,      # ✅ ĐÃ BẬT LẠI
+    "H": technique_H,
+    "D": technique_D,
+    "B": technique_B,
+    "P": technique_P,
+    "L": technique_L
+}
+
+def spc_encrypt_with_order(data, seed, technique_order, browser_session_id=None):
+    # === QUAN TRỌNG: Nếu seed rỗng, TỰ TẠO ===
+    if not seed:
+        seed = hashlib.sha256(os.urandom(32)).hexdigest()
+        print(f"[spc_encrypt_with_order] Auto-generated seed (fallback): {seed}")
+    
+    print(f"[spc_encrypt_with_order] Using seed: {seed}")
+    
+    saoyut = SAOYUT(seed)
+    saoyut.data['browser_session_id'] = browser_session_id
+    
+    result = data
+    
+    for name in technique_order:
+        if name in ALL_TECHNIQUES:
+            result = ALL_TECHNIQUES[name](result, saoyut)
+    
+    return {
+        "data": result,
+        "saoyut": saoyut.export(),
+        "seed": seed  # ĐẢM BẢO KHÔNG RỖNG
+    }
+
+def spc_decrypt_with_order(data, saoyut_data, seed, technique_order, browser_session_id=None):
+    """
+    Giải mã dữ liệu với nhiều biến thể seed để tìm đúng
+    """
+    stored_seed_hash = saoyut_data.get('seed_hash', '')
+    
+    print(f"[DECRYPT] ===== DECRYPT START =====")
+    print(f"[DECRYPT] stored_seed_hash: {stored_seed_hash}")
+    print(f"[DECRYPT] input seed: '{seed}'")
+    print(f"[DECRYPT] browser_session_id: {browser_session_id}")
+    print(f"[DECRYPT] saoyut browser_session_id: {saoyut_data.get('browser_session_id')}")
+    
+    # === TẠO DANH SÁCH CÁC BIẾN THỂ SEED ===
+    possible_seeds = []
+    
+    # 1. Seed gốc (ưu tiên)
+    if seed:
+        possible_seeds.append(seed)
+    
+    # 2. Seed + session ID từ browser hiện tại
+    if browser_session_id and seed:
+        possible_seeds.append(f"{seed}_{browser_session_id}")
+    
+    # 3. Seed + session ID từ SAOYUT
+    saoyut_session_id = saoyut_data.get('browser_session_id')
+    if saoyut_session_id and seed:
+        possible_seeds.append(f"{seed}_{saoyut_session_id}")
+    
+    # 4. Nếu seed có session ID, thử seed thuần
+    if seed and '_' in seed:
+        possible_seeds.append(seed.split('_')[0])
+    
+    # 5. Nếu seed rỗng, thử session ID
+    if not seed and browser_session_id:
+        possible_seeds.append(browser_session_id)
+    
+    # 6. Thử session ID từ SAOYUT (nếu seed rỗng)
+    if not seed and saoyut_session_id:
+        possible_seeds.append(saoyut_session_id)
+    
+    # Loại bỏ trùng lặp
+    possible_seeds = list(dict.fromkeys(possible_seeds))
+    print(f"[DECRYPT] Possible seeds: {possible_seeds}")
+    
+    # === THỬ TỪNG SEED ===
+    last_error = None
+    for try_seed in possible_seeds:
+        try:
+            print(f"[DECRYPT] Trying seed: '{try_seed}'")
+            
+            # Tính hash của seed thử
+            computed_hash = hashlib.sha256(try_seed.encode()).hexdigest()
+            print(f"[DECRYPT] Computed hash: {computed_hash}")
+            
+            if computed_hash != stored_seed_hash:
+                print(f"[DECRYPT] ❌ Hash mismatch")
+                continue
+            
+            print(f"[DECRYPT] ✅ SEED MATCHES! Using: {try_seed}")
+            
+            # === TIẾN HÀNH GIẢI MÃ VỚI SEED ĐÚNG ===
+            saoyut = SAOYUT(try_seed)
+            saoyut.data = saoyut_data
+            result = data
+            
+            # === KIỂM TRA KỸ THUẬT L ===
+            has_L_in_order = 'L' in technique_order
+            l_meta = saoyut.get_technique_by_name("L")
+            has_L_metadata = bool(l_meta) and bool(l_meta.get('data_id'))
+            
+            print(f"[DECRYPT] Has L in order: {has_L_in_order}")
+            print(f"[DECRYPT] Has L metadata: {has_L_metadata}")
+            
+            # Tạo effective order - loại bỏ L nếu không có metadata
+            effective_order = []
+            for name in technique_order:
+                if name == 'L' and not has_L_metadata:
+                    print(f"[DECRYPT] Skipping L - no valid metadata")
+                    continue
+                effective_order.append(name)
+            
+            print(f"[DECRYPT] Effective order: {effective_order}")
+            
+            # === XỬ LÝ TỪNG KỸ THUẬT ===
+            for name in reversed(effective_order):
+                if name == "L":
+                    # === XỬ LÝ L ===
+                    meta = l_meta
+                    data_id = meta.get("data_id", "")
+                    
+                    if not data_id:
+                        print("[DECRYPT] L metadata missing data_id - skipping")
+                        continue
+                        
+                    if not browser_session_id:
+                        print("[DECRYPT] L needs browser_session_id but None - skipping")
+                        continue
+                        
+                    segment_dir = app.config['SEGMENT_FOLDER']
+                    segment_sizes = meta.get("segment_sizes", [])
+                    segment_hashes = meta.get("segment_hashes", [])
+                    num_segments = meta.get("num_segments", 0)
+                    
+                    if num_segments == 0:
+                        print("[DECRYPT] L has 0 segments - skipping")
+                        continue
+                        
+                    print(f"[DECRYPT] Processing L: {num_segments} segments")
+                    
+                    segments = []
+                    for i in range(num_segments):
+                        filename = f"segment_{data_id}_{browser_session_id}_{i+1}.dat"
+                        segment_path = os.path.join(segment_dir, filename)
+                        
+                        if not os.path.exists(segment_path):
+                            print(f"[DECRYPT] Missing segment: {filename}")
+                            raise FileNotFoundError(f"Missing segment {i+1}: {filename}")
+                        
+                        with open(segment_path, 'rb') as f:
+                            segment_data = f.read()
+                        
+                        expected_size = segment_sizes[i] if i < len(segment_sizes) else len(segment_data)
+                        if len(segment_data) != expected_size:
+                            raise ValueError(f"Segment {i+1} size mismatch")
+                        
+                        if i < len(segment_hashes):
+                            computed_hash_seg = hashlib.sha256(segment_data).hexdigest()
+                            if computed_hash_seg != segment_hashes[i]:
+                                raise ValueError(f"Segment {i+1} checksum mismatch!")
+                        
+                        segments.append(segment_data)
+                    
+                    result = b''.join(segments)
+                    print(f"[DECRYPT] L assembled {len(result)} bytes from {num_segments} segments")
+                    continue
+                
+                elif name == "S":
+                    result = technique_S(result, saoyut, reverse=True)
+                else:
+                    if name in ALL_TECHNIQUES:
+                        result = ALL_TECHNIQUES[name](result, saoyut, reverse=True)
+            
+            print(f"[DECRYPT] ✅ SUCCESS! Decrypted {len(result)} bytes")
+            print(f"[DECRYPT] ===== DECRYPT END =====\n")
+            return result
+            
+        except FileNotFoundError as e:
+            print(f"[DECRYPT] FileNotFoundError: {e}")
+            raise
+        except ValueError as e:
+            print(f"[DECRYPT] ValueError with seed {try_seed}: {e}")
+            last_error = e
+            continue
+        except Exception as e:
+            print(f"[DECRYPT] Exception with seed {try_seed}: {e}")
+            last_error = e
+            continue
+    
+    # === NẾU TẤT CẢ ĐỀU THẤT BẠI ===
+    if last_error:
+        print(f"[DECRYPT] All seeds failed. Last error: {last_error}")
+        raise ValueError("❌ Sai Seed hoặc Session ID! Kiểm tra lại.")
+    
+    print("[DECRYPT] No valid seed found")
+    raise ValueError("❌ Không tìm thấy seed hợp lệ! Kiểm tra lại seed và session ID.")
+
+# ============================================================
+# SEGMENT API
+# ============================================================
+@app.route('/segments/list', methods=['GET'])
+@require_session
+def list_segments():
+    try:
+        browser_session_id = request.args.get('session_id')
+        data_id = request.args.get('data_id')
+        
+        if not data_id:
+            return jsonify({'success': False, 'error': 'data_id required'}), 400
+        
+        segment_dir = app.config['SEGMENT_FOLDER']
+        segments = []
+        
+        if os.path.exists(segment_dir):
+            prefix = f"segment_{data_id}_{browser_session_id}_"
+            for filename in os.listdir(segment_dir):
+                if filename.startswith(prefix) and filename.endswith('.dat'):
+                    filepath = os.path.join(segment_dir, filename)
+                    segments.append({
+                        'filename': filename,
+                        'size': os.path.getsize(filepath),
+                        'path': filepath
+                    })
+        
+        segments.sort(key=lambda x: x['filename'])
+        
+        return jsonify({
+            'success': True,
+            'segments': segments,
+            'count': len(segments)
+        })
+    except Exception as e:
+        print(f"[ERROR] list_segments: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/segments/upload', methods=['POST'])
+@require_session
+def upload_segments():
+    try:
+        browser_session_id = request.args.get('session_id') or request.form.get('session_id')
+        if not browser_session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        
+        if not session_manager.is_valid(browser_session_id):
+            return jsonify({
+                'success': False, 
+                'error': 'Session expired',
+                'code': 'SESSION_EXPIRED'
+            }), 401
+        
+        if 'segments' not in request.files:
+            return jsonify({'success': False, 'error': 'No segments uploaded'}), 400
+        
+        files = request.files.getlist('segments')
+        if not files:
+            return jsonify({'success': False, 'error': 'No files provided'}), 400
+        
+        segment_dir = app.config['SEGMENT_FOLDER']
+        os.makedirs(segment_dir, exist_ok=True)
+        
+        uploaded = []
+        data_ids = []
+        
+        for file in files:
+            if file.filename:
+                original_filename = secure_filename(file.filename)
+                parts = original_filename.replace('.dat', '').split('_')
+                
+                if len(parts) >= 2 and parts[0] == 'segment':
+                    data_id = parts[1]
+                else:
+                    return jsonify({
+                        'success': False,
+                        'error': f'Invalid filename: {original_filename}. Must be segment_{data_id}.dat',
+                        'hint': 'Please use segment files from the download'
+                    }), 400
+                
+                prefix = f"segment_{data_id}_{browser_session_id}_"
+                existing = [f for f in os.listdir(segment_dir) if f.startswith(prefix) and f.endswith('.dat')]
+                max_idx = 0
+                for f in existing:
+                    idx_part = f.replace('.dat', '').split('_')[-1]
+                    if idx_part.isdigit():
+                        max_idx = max(max_idx, int(idx_part))
+                index = max_idx + 1
+                
+                filename = f"segment_{data_id}_{browser_session_id}_{index}.dat"
+                filepath = os.path.join(segment_dir, filename)
+                
+                if os.path.exists(filepath):
+                    print(f"[DEBUG] File {filename} already exists")
+                    uploaded.append(filename)
+                    data_ids.append(data_id)
+                    continue
+                
+                file.save(filepath)
+                uploaded.append(filename)
+                data_ids.append(data_id)
+                print(f"[DEBUG] Uploaded segment: {filename}")
+        
+        return jsonify({
+            'success': True,
+            'uploaded': uploaded,
+            'count': len(uploaded),
+            'data_id': data_ids[0] if data_ids else None
+        })
+    except Exception as e:
+        print(f"[ERROR] upload_segments: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/segments/upload-zip', methods=['POST'])
+@require_session
+def upload_segments_zip():
+    try:
+        browser_session_id = request.args.get('session_id') or request.form.get('session_id')
+        if not browser_session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        
+        if not session_manager.is_valid(browser_session_id):
+            return jsonify({
+                'success': False, 
+                'error': 'Session expired',
+                'code': 'SESSION_EXPIRED'
+            }), 401
+        
+        if 'zip_file' not in request.files:
+            return jsonify({'success': False, 'error': 'No ZIP file uploaded'}), 400
+        
+        zip_file = request.files['zip_file']
+        if zip_file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        zip_data = zip_file.read()
+        zip_buffer = io.BytesIO(zip_data)
+        
+        segment_dir = app.config['SEGMENT_FOLDER']
+        os.makedirs(segment_dir, exist_ok=True)
+        
+        uploaded = []
+        data_ids = []
+        
+        with zipfile.ZipFile(zip_buffer, 'r') as zf:
+            for filename in zf.namelist():
+                if not filename.endswith('.dat'):
+                    continue
+                
+                file_data = zf.read(filename)
+                parts = filename.replace('.dat', '').split('_')
+                
+                if len(parts) >= 2 and parts[0] == 'segment':
+                    data_id = parts[1]
+                else:
+                    continue
+                
+                prefix = f"segment_{data_id}_{browser_session_id}_"
+                existing = [f for f in os.listdir(segment_dir) if f.startswith(prefix) and f.endswith('.dat')]
+                max_idx = 0
+                for f in existing:
+                    idx_part = f.replace('.dat', '').split('_')[-1]
+                    if idx_part.isdigit():
+                        max_idx = max(max_idx, int(idx_part))
+                index = max_idx + 1
+                
+                new_filename = f"segment_{data_id}_{browser_session_id}_{index}.dat"
+                filepath = os.path.join(segment_dir, new_filename)
+                
+                with open(filepath, 'wb') as f:
+                    f.write(file_data)
+                
+                uploaded.append(new_filename)
+                data_ids.append(data_id)
+                print(f"[DEBUG] Extracted segment: {filename} -> {new_filename}")
+        
+        return jsonify({
+            'success': True,
+            'uploaded': uploaded,
+            'count': len(uploaded),
+            'data_id': data_ids[0] if data_ids else None
+        })
+    except Exception as e:
+        print(f"[ERROR] upload_segments_zip: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/segments/clear', methods=['POST'])
+def clear_segments():
+    try:
+        session_manager.cleanup_expired()
+        return jsonify({'success': True, 'message': 'Expired segments cleared'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/segments/download/<int:segment_id>', methods=['GET'])
+@require_session
+def download_segment(segment_id):
+    try:
+        browser_session_id = request.args.get('session_id')
+        if not browser_session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        
+        data_id = request.args.get('data_id')
+        if not data_id:
+            return jsonify({'success': False, 'error': 'data_id required'}), 400
+        
+        segment_dir = app.config['SEGMENT_FOLDER']
+        filename = f"segment_{data_id}_{browser_session_id}_{segment_id}.dat"
+        segment_path = os.path.join(segment_dir, filename)
+        
+        if not os.path.exists(segment_path):
+            return jsonify({'success': False, 'error': 'Segment not found'}), 404
+        
+        return send_file(segment_path, as_attachment=True, download_name=f"segment_{data_id}.dat")
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/segments/download-all', methods=['POST'])
+@require_session
+def download_all_segments():
+    try:
+        data = request.json
+        data_id = data.get('data_id')
+        num_segments = data.get('num_segments', 0)
+        browser_session_id = data.get('session_id')
+        
+        if not data_id:
+            return jsonify({'success': False, 'error': 'data_id required'}), 400
+        
+        if num_segments == 0:
+            return jsonify({'success': False, 'error': 'No segments specified'}), 400
+        
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for i in range(num_segments):
+                if browser_session_id:
+                    segment_path = os.path.join(app.config['SEGMENT_FOLDER'], f"segment_{data_id}_{browser_session_id}_{i+1}.dat")
+                else:
+                    segment_path = os.path.join(app.config['SEGMENT_FOLDER'], f"segment_{data_id}_{i+1}.dat")
+                
+                if os.path.exists(segment_path):
+                    zip_file.write(segment_path, f"segment_{data_id}_{i+1}.dat")
+                    print(f"[DEBUG] Added to ZIP: segment_{data_id}_{i+1}.dat")
+                else:
+                    print(f"[WARN] Segment {i+1} not found")
+        
+        zip_buffer.seek(0)
+        return send_file(zip_buffer, as_attachment=True, download_name=f"segments_{data_id}.zip")
+    except Exception as e:
+        print(f"[ERROR] download_all_segments: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/segments/count', methods=['GET'])
+def get_segment_count():
+    try:
+        segment_dir = app.config['SEGMENT_FOLDER']
+        count = 0
+        if os.path.exists(segment_dir):
+            count = len([f for f in os.listdir(segment_dir) if f.endswith('.dat')])
+        return jsonify({'success': True, 'count': count})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# SESSION API
+# ============================================================
+@app.route('/api/session/create', methods=['POST'])
+def create_session():
+    try:
+        session_id = session_manager.create_session()
+        return jsonify({
+            'success': True,
+            'session_id': session_id,
+            'timeout': app.config['SESSION_TIMEOUT']
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/session/verify', methods=['POST'])
+def verify_session():
+    try:
+        data = request.json
+        session_id = data.get('session_id')
+        if not session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        
+        is_valid = session_manager.is_valid(session_id)
+        return jsonify({
+            'success': True,
+            'valid': is_valid
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/fingerprint', methods=['POST'])
+def register_fingerprint():
+    try:
+        data = request.json
+        session_id = data.get('session_id')
+        fingerprint = data.get('fingerprint')
+        
+        if not session_id or not fingerprint:
+            return jsonify({'success': False, 'error': 'Missing data'}), 400
+        
+        if session_manager.update_fingerprint(session_id, fingerprint):
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Invalid session'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/session/clear', methods=['POST'])
+def clear_session():
+    try:
+        data = request.json
+        session_id = data.get('session_id')
+        if not session_id:
+            return jsonify({'success': False, 'error': 'Session ID required'}), 400
+        
+        session_manager.force_cleanup(session_id)
+        return jsonify({'success': True, 'message': 'Session cleared'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/session', methods=['GET'])
+def get_session():
+    try:
+        session_id = session_manager.create_session()
+        return jsonify({
+            'success': True,
+            'session_id': session_id
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# ROUTES CHÍNH
+# ============================================================
+@app.route('/')
+def index():
+    return render_template('index.html', techniques=list(ALL_TECHNIQUES.keys()))
+
+@app.route('/process', methods=['POST'])
+def process_file():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file uploaded'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        action = request.form.get('action', 'encrypt')
+        technique = request.form.get('technique', 'auto')
+        output_format = request.form.get('output_format', 'base64')
+        
+        # Đọc file
+        file_data = file.read()
+        
+        # Tạo session ID
+        browser_session_id = hashlib.md5(f"{time.time()}{random.randint(1, 999999)}".encode()).hexdigest()[:16]
+        
+        # Tạo seed
+        seed = hashlib.sha256(os.urandom(32)).hexdigest()
+        
+        # Xác định kỹ thuật
+        if technique == 'auto':
+            tech_order = ['R', 'C', 'E', 'Z', 'S', 'H', 'D', 'B', 'P', 'L']
+        else:
+            tech_order = [technique]
+        
+        if action == 'encrypt':
+            result = spc_encrypt_with_order(file_data, seed, tech_order, browser_session_id)
+            
+            # Lấy data_id
+            data_id = None
+            for tech in result["saoyut"]["techniques"]:
+                if tech["name"] == "L":
+                    data_id = tech["metadata"].get("data_id")
+                    break
+            
+            # Format output
+            if output_format == 'base64':
+                output = base64.b64encode(result["data"]).decode('utf-8')
+            elif output_format == 'hex':
+                output = result["data"].hex()
+            else:
+                output = result["data"].decode('utf-8', errors='replace')
+            
+            return jsonify({
+                'success': True,
+                'action': 'encrypt',
+                'output': output,
+                'output_format': output_format,
+                'data_id': data_id,
+                'session_id': browser_session_id,
+                'saoyut': result["saoyut"],
+                'seed': seed,
+                'order': tech_order
+            })
+        
+        else:  # decrypt
+            # Cần có seed và saoyut từ request
+            seed = request.form.get('seed', '')
+            saoyut_json = request.form.get('saoyut', '')
+            
+            if not seed or not saoyut_json:
+                return jsonify({'success': False, 'error': 'Seed and SAOYUT required for decryption'}), 400
+            
+            saoyut_data = json.loads(saoyut_json)
+            result = spc_decrypt_with_order(file_data, saoyut_data, seed, tech_order, browser_session_id)
+            
+            if output_format == 'base64':
+                output = base64.b64encode(result).decode('utf-8')
+            elif output_format == 'hex':
+                output = result.hex()
+            else:
+                output = result.decode('utf-8', errors='replace')
+            
+            return jsonify({
+                'success': True,
+                'action': 'decrypt',
+                'output': output,
+                'output_format': output_format
+            })
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
+
+@app.route('/encrypt', methods=['POST'])
+def encrypt():
+    try:
+        data = request.json
+        text = data.get('text', '')
+        seed = data.get('seed', '')
+        technique_order = data.get('order', list(ALL_TECHNIQUES.keys()))
+        browser_session_id = data.get('session_id')
+        session_mode = data.get('session_mode', True)  # Mặc định BẬT
+
+        print(f"[ENCRYPT] session_mode: {session_mode}")
+        print(f"[ENCRYPT] browser_session_id: {browser_session_id}")
+        print(f"[ENCRYPT] seed input: {seed}")
+
+        # === Nếu seed rỗng, TỰ TẠO ===
+        if not seed:
+            seed = hashlib.sha256(os.urandom(32)).hexdigest()
+            print(f"[ENCRYPT] Auto-generated seed: {seed}")
+
+        text_bytes = text.encode('utf-8')
+
+        # === Nếu session_mode = True, gắn session vào seed ===
+        effective_seed = seed
+        if session_mode and browser_session_id:
+            effective_seed = f"{seed}_{browser_session_id}" if seed else browser_session_id
+
+        print(f"[ENCRYPT] effective_seed: {effective_seed}")
+
+        result = spc_encrypt_with_order(text_bytes, effective_seed, technique_order, browser_session_id)
+
+        print(f"[ENCRYPT] Original seed: {seed}")
+        print(f"[ENCRYPT] Effective seed: {effective_seed}")
+        print(f"[ENCRYPT] Session mode: {session_mode}")
+        print(f"[ENCRYPT] Browser session ID: {browser_session_id}")
+
+        result = spc_encrypt_with_order(text_bytes, effective_seed, technique_order, browser_session_id)
+
+        encrypted_b64 = base64.b64encode(result["data"]).decode('utf-8')
+        encrypted_hex = result["data"].hex()
+
+        data_id = None
+        segments_info = None
+        for tech in result["saoyut"]["techniques"]:
+            if tech["name"] == "L":
+                segments_info = tech["metadata"]
+                data_id = segments_info.get("data_id")
+                break
+
+        # === ĐẢM BẢO TRẢ VỀ SEED KHÔNG RỖNG ===
+        return jsonify({
+            'success': True,
+            'encrypted_b64': encrypted_b64,
+            'encrypted_hex': encrypted_hex,
+            'seed': seed,  # Seed gốc (KHÔNG BAO GIỜ RỖNG)
+            'seed_with_session': effective_seed,
+            'effective_seed': effective_seed,
+            'saoyut': result["saoyut"],
+            'order': technique_order,
+            'segments': segments_info,
+            'data_id': data_id,
+            'session_mode': session_mode
+        })
+    except Exception as e:
+        print(f"[ERROR] /encrypt: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
+
+@app.route('/decrypt', methods=['POST'])
+def decrypt():
+    try:
+        print("=" * 60)
+        print("[DECRYPT] === NEW DECRYPT REQUEST ===")
+        
+        data = request.json
+        
+        encrypted_b64 = data.get('encrypted_b64', '')
+        seed = data.get('seed', '')
+        saoyut_data = data.get('saoyut', {})
+        technique_order = data.get('order', [])
+        browser_session_id = data.get('session_id')
+        
+        print(f"[DECRYPT] seed: '{seed}'")
+        print(f"[DECRYPT] technique_order: {technique_order}")
+        print(f"[DECRYPT] browser_session_id: {browser_session_id}")
+        
+        # === KIỂM TRA L TRONG SAOYUT ===
+        has_L_in_saoyut = False
+        l_data_id = None
+        for tech in saoyut_data.get('techniques', []):
+            if tech.get('name') == 'L':
+                has_L_in_saoyut = True
+                l_data_id = tech.get('metadata', {}).get('data_id')
+                break
+        
+        print(f"[DECRYPT] Has L in SAOYUT: {has_L_in_saoyut}")
+        print(f"[DECRYPT] L data_id: {l_data_id}")
+        
+        # === NẾU KHÔNG CÓ L TRONG SAOYUT, THÔNG BÁO CHO NGƯỜI DÙNG ===
+        if 'L' in technique_order and not has_L_in_saoyut:
+            print("[DECRYPT] WARNING: L in order but not in SAOYUT - will be skipped")
+        
+        if not encrypted_b64:
+            return jsonify({'success': False, 'error': 'No encrypted data provided'}), 400
+        
+        if not seed:
+            return jsonify({'success': False, 'error': 'Seed is required!'}), 400
+        
+        if not saoyut_data or not saoyut_data.get('techniques'):
+            return jsonify({'success': False, 'error': 'SAOYUT is required!'}), 400
+        
+        encrypted_data = base64.b64decode(encrypted_b64)
+        print(f"[DECRYPT] Decoded data size: {len(encrypted_data)} bytes")
+        
+        try:
+            decrypted = spc_decrypt_with_order(encrypted_data, saoyut_data, seed, technique_order, browser_session_id)
+            decrypted_text = decrypted.decode('utf-8', errors='replace')
+            
+            print(f"[DECRYPT] Success! Decrypted size: {len(decrypted)} bytes")
+            print("[DECRYPT] === END SUCCESS ===")
+            print("=" * 60)
+            
+            return jsonify({
+                'success': True,
+                'decrypted_text': decrypted_text,
+                'decrypted_hex': decrypted.hex(),
+                'decrypted_size': len(decrypted)
+            })
+            
+        except FileNotFoundError as e:
+            print(f"[DECRYPT] ERROR - FileNotFoundError: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Missing segment file: {str(e)}',
+                'hint': 'Please upload all required segment files!'
+            }), 400
+        except ValueError as e:
+            print(f"[DECRYPT] ERROR - ValueError: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                'success': False,
+                'error': str(e),
+                'hint': 'Check if seed matches the original encryption!'
+            }), 400
+        except Exception as e:
+            print(f"[DECRYPT] ERROR - Exception: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                'success': False,
+                'error': f'Decryption failed: {str(e)}',
+                'hint': 'Check if seed, SAOYUT, and technique order match the original encryption!'
+            }), 400
+            
+    except Exception as e:
+        print(f"[DECRYPT] ERROR - Outer Exception: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file uploaded'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
+            content = f.read()
+        
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'content': content,
+            'size': os.path.getsize(filepath)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/download/<filename>', methods=['GET'])
+def download_file(filename):
+    try:
+        filepath = os.path.join(app.config['DOWNLOAD_FOLDER'], filename)
+        if not os.path.exists(filepath):
+            return jsonify({'success': False, 'error': 'File not found'}), 404
+        return send_file(filepath, as_attachment=True)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/save', methods=['POST'])
+def save_file():
+    try:
+        data = request.json
+        content = data.get('content', '')
+        filename = data.get('filename', 'download.txt')
+        filetype = data.get('type', 'text')
+        
+        filename = secure_filename(filename)
+        filepath = os.path.join(app.config['DOWNLOAD_FOLDER'], filename)
+        
+        if filetype == 'base64':
+            try:
+                binary_data = base64.b64decode(content)
+                with open(filepath, 'wb') as f:
+                    f.write(binary_data)
+            except:
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    f.write(content)
+        else:
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(content)
+        
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'path': filepath
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/settings/segment-size', methods=['POST'])
+def set_segment_size():
+    try:
+        data = request.json
+        size = data.get('size', 1024 * 1024)
+        
+        if size < 1024:
+            size = 1024
+        elif size > 100 * 1024 * 1024:
+            size = 100 * 1024 * 1024
+        
+        app.config['DEFAULT_SEGMENT_SIZE'] = size
+        
+        return jsonify({
+            'success': True,
+            'segment_size': size,
+            'message': f'Segment size set to {size} bytes'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/settings/segment-size', methods=['GET'])
+def get_segment_size():
+    try:
+        return jsonify({
+            'success': True,
+            'segment_size': app.config['DEFAULT_SEGMENT_SIZE']
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)

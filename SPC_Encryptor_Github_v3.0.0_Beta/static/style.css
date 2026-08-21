@@ -1,0 +1,1067 @@
+/* ============================================================
+   SPC ENCRYPTOR PRO v2.5.2 - MAIN STYLESHEET
+   ============================================================ */
+
+/* ===== RESET & BASE ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0a0a1a, #1a1a3e);
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 20px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #00ff88;
+    text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #888;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+.subtitle .highlight {
+    color: #00ff88;
+}
+
+/* ===== CARDS ===== */
+.card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.card-title {
+    color: #00ff88;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ===== GRID LAYOUT ===== */
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* ===== FORM ELEMENTS ===== */
+textarea,
+input,
+select {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+
+textarea:focus,
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #00ff88;
+}
+
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin: 4px;
+}
+
+.btn-primary {
+    background: #00ff88;
+    color: #0a0a1a;
+}
+.btn-primary:hover {
+    background: #00cc66;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
+}
+
+.btn-secondary {
+    background: #ff6b6b;
+    color: #fff;
+}
+.btn-secondary:hover {
+    background: #cc5555;
+    transform: translateY(-2px);
+}
+
+.btn-sm {
+    padding: 5px 12px;
+    font-size: 12px;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid #00ff88;
+    color: #00ff88;
+}
+.btn-outline:hover {
+    background: #00ff88;
+    color: #0a0a1a;
+}
+
+.btn-outline-danger {
+    background: transparent;
+    border: 1px solid #ff6b6b;
+    color: #ff6b6b;
+}
+.btn-outline-danger:hover {
+    background: #ff6b6b;
+    color: #0a0a1a;
+}
+
+.btn-active {
+    background: #00ff88 !important;
+    color: #0a0a1a !important;
+}
+
+.btn-copy {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 2px 10px;
+    color: #888;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.3s;
+}
+.btn-copy:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* ===== FLEX HELPERS ===== */
+.flex {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.mt-10 {
+    margin-top: 10px;
+}
+.mb-10 {
+    margin-bottom: 10px;
+}
+
+.text-muted {
+    color: #888;
+    font-size: 13px;
+}
+
+/* ===== TECHNIQUE TAGS ===== */
+.technique-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 0;
+    min-height: 40px;
+}
+
+.tech-tag {
+    background: rgba(0, 255, 136, 0.12);
+    border: 1px solid rgba(0, 255, 136, 0.25);
+    border-radius: 16px;
+    padding: 6px 14px;
+    cursor: grab;
+    transition: all 0.3s;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    touch-action: none;
+}
+
+.tech-tag:active {
+    cursor: grabbing;
+}
+.tech-tag:hover {
+    background: rgba(0, 255, 136, 0.25);
+}
+.tech-tag .remove {
+    cursor: pointer;
+    font-weight: bold;
+    color: #ff6b6b;
+    font-size: 14px;
+    padding: 0 4px;
+}
+.tech-tag .remove:hover {
+    color: #ff0000;
+}
+.tech-tag.dragging {
+    opacity: 0.3;
+}
+.tech-tag.drag-over {
+    border-color: #00ff88;
+    border-width: 2px;
+    background: rgba(0, 255, 136, 0.2);
+}
+.tech-tag.touch-drag {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+/* ===== OUTPUT BOXES ===== */
+.output-box {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 6px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    min-height: 40px;
+}
+
+.output-box.saoyut-box {
+    max-height: 180px;
+    font-size: 11px;
+}
+
+/* ===== STATUS ===== */
+.status {
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+    white-space: pre-wrap;
+}
+
+.status.success {
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid #00ff88;
+    color: #00ff88;
+}
+.status.error {
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid #ff6b6b;
+    color: #ff6b6b;
+}
+.status.info {
+    background: rgba(52, 152, 219, 0.1);
+    border: 1px solid #3498db;
+    color: #3498db;
+}
+.status.warning {
+    background: rgba(243, 156, 18, 0.1);
+    border: 1px solid #f39c12;
+    color: #f39c12;
+}
+
+/* ===== MODE TOGGLE ===== */
+.mode-toggle {
+    display: flex;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 4px;
+}
+.mode-toggle .btn {
+    margin: 0;
+    border-radius: 6px;
+    padding: 8px 20px;
+    font-size: 13px;
+}
+
+.input-hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+.input-hint .highlight {
+    color: #00ff88;
+}
+
+/* ===== TABS ===== */
+.tab-group {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+.tab-btn {
+    padding: 4px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    background: transparent;
+    color: #888;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+.tab-btn:hover {
+    border-color: #00ff88;
+    color: #fff;
+}
+.tab-btn.active {
+    border-color: #00ff88;
+    background: rgba(0, 255, 136, 0.1);
+    color: #00ff88;
+}
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+
+/* ===== HEADERS ===== */
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+/* ===== SAOYUT ===== */
+.saoyut-section {
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 6px;
+    background: rgba(0, 0, 0, 0.15);
+}
+.saoyut-section .saoyut-label {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+/* ===== GRID 2 COLUMNS ===== */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* ===== BADGES ===== */
+.badge {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    color: #aaa;
+}
+.badge-success {
+    background: rgba(0, 255, 136, 0.2);
+    color: #00ff88;
+}
+.badge-error {
+    background: rgba(255, 107, 107, 0.2);
+    color: #ff6b6b;
+}
+.badge-warning {
+    background: rgba(243, 156, 18, 0.2);
+    color: #f39c12;
+}
+
+/* ===== COMPARE ===== */
+.compare-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+}
+.compare-item {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.compare-item .label {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 4px;
+}
+.compare-item .value {
+    font-family: monospace;
+    font-size: 13px;
+    word-break: break-all;
+    max-height: 80px;
+    overflow-y: auto;
+}
+
+/* ===== SEED DISPLAY ===== */
+.seed-display {
+    background: rgba(0, 255, 136, 0.05);
+    border: 1px solid rgba(0, 255, 136, 0.1);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: monospace;
+    font-size: 12px;
+    word-break: break-all;
+    min-height: 30px;
+}
+
+/* ===== FILE UPLOAD ===== */
+.file-upload-area {
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.file-upload-area:hover {
+    border-color: #00ff88;
+    background: rgba(0, 255, 136, 0.05);
+}
+.file-upload-area .icon {
+    font-size: 30px;
+}
+.file-upload-area .text {
+    color: #888;
+    font-size: 13px;
+}
+.file-upload-area .filename {
+    color: #00ff88;
+    font-weight: bold;
+}
+
+/* ===== SEGMENTS ===== */
+.segment-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-family: monospace;
+    font-size: 12px;
+}
+.segment-item .size {
+    color: #888;
+    font-size: 12px;
+}
+
+.segment-size-select {
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 12px;
+    font-family: monospace;
+}
+.segment-size-select:focus {
+    outline: none;
+    border-color: #00ff88;
+}
+
+/* ===== SESSION INFO ===== */
+.session-info {
+    font-size: 12px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    font-family: monospace;
+    word-break: break-all;
+}
+.session-info .label {
+    color: #888;
+}
+.session-info .value {
+    color: #00ff88;
+}
+
+/* ===== TOUCH CLONE ===== */
+.touch-clone {
+    position: fixed !important;
+    pointer-events: none !important;
+    z-index: 9999 !important;
+    opacity: 0.85 !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.4) !important;
+    background: rgba(0, 255, 136, 0.15) !important;
+    border: 2px solid #00ff88 !important;
+    border-radius: 20px !important;
+    padding: 6px 14px !important;
+    font-size: 13px !important;
+    color: #fff !important;
+}
+
+/* ============================================================
+   RESPONSIVE - TỰ ĐỘNG TỐI ƯU CHO ĐIỆN THOẠI
+   ============================================================ */
+
+/* Tablet và điện thoại lớn (<= 1024px) */
+@media (max-width: 1024px) {
+    .row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .container {
+        padding: 0 10px;
+    }
+
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .compare-box {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Điện thoại (<= 768px) */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+
+    .subtitle {
+        font-size: 12px;
+    }
+
+    .card {
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+
+    .card-title {
+        font-size: 0.9rem;
+    }
+
+    /* Nút nhỏ hơn trên mobile */
+    .btn {
+        padding: 8px 16px;
+        font-size: 13px;
+        margin: 3px;
+    }
+
+    .btn-sm {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+
+    /* Mode toggle */
+    .mode-toggle .btn {
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+
+    /* Text area */
+    textarea {
+        min-height: 60px;
+        font-size: 12px;
+    }
+
+    /* Kỹ thuật tags */
+    .tech-tag {
+        padding: 4px 10px;
+        font-size: 12px;
+    }
+
+    /* Output box */
+    .output-box {
+        max-height: 120px;
+        font-size: 11px;
+        padding: 8px;
+    }
+
+    .output-box.saoyut-box {
+        max-height: 150px;
+        font-size: 10px;
+    }
+
+    /* File upload */
+    .file-upload-area {
+        padding: 15px;
+    }
+    .file-upload-area .icon {
+        font-size: 24px;
+    }
+    .file-upload-area .text {
+        font-size: 12px;
+    }
+
+    /* Segment items */
+    .segment-item {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    /* Session info */
+    .session-info {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+
+    /* Tabs */
+    .tab-btn {
+        font-size: 11px;
+        padding: 3px 10px;
+    }
+
+    /* Seed display */
+    .seed-display {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+
+    /* Compare */
+    .compare-item .value {
+        font-size: 12px;
+        max-height: 60px;
+    }
+
+    /* Status */
+    .status {
+        font-size: 13px;
+        padding: 8px;
+    }
+
+    /* Flex */
+    .flex {
+        gap: 6px;
+    }
+}
+
+/* Điện thoại rất nhỏ (<= 480px) */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.3rem;
+    }
+
+    .card {
+        padding: 10px;
+    }
+
+    .btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .btn-sm {
+        padding: 3px 8px;
+        font-size: 10px;
+    }
+
+    .tech-tag {
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+
+    .output-box {
+        font-size: 10px;
+        max-height: 100px;
+    }
+
+    .session-info {
+        font-size: 10px;
+    }
+
+    .seed-display {
+        font-size: 10px;
+    }
+}
+
+/* ============================================================
+   TOUCH DEVICE - TỐI ƯU CHO MÀN HÌNH CẢM ỨNG
+   ============================================================ */
+
+/* Thiết bị cảm ứng (điện thoại, tablet) */
+@media (hover: none) and (pointer: coarse) {
+    /* Tăng kích thước nút bấm để dễ chạm */
+    .btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .btn-sm {
+        min-height: 36px;
+        min-width: 36px;
+    }
+
+    .tech-tag {
+        padding: 8px 14px;
+        font-size: 14px;
+        min-height: 36px;
+    }
+
+    .tech-tag .remove {
+        font-size: 16px;
+        padding: 4px 8px;
+    }
+
+    /* Tăng kích thước input */
+    textarea,
+    input,
+    select {
+        font-size: 16px; /* Ngăn zoom tự động trên iOS */
+        padding: 12px;
+    }
+
+    /* File upload area */
+    .file-upload-area {
+        padding: 20px;
+        min-height: 80px;
+    }
+
+    /* Tab buttons */
+    .tab-btn {
+        padding: 6px 14px;
+        font-size: 13px;
+        min-height: 36px;
+    }
+
+    /* Segment items */
+    .segment-item {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    /* Copy button */
+    .btn-copy {
+        padding: 4px 12px;
+        font-size: 12px;
+        min-height: 30px;
+    }
+
+    /* Badge */
+    .badge {
+        padding: 4px 12px;
+        font-size: 12px;
+    }
+}
+
+/* ============================================================
+   DARK MODE - HỖ TRỢ TỐI ƯU CHO MÀN HÌNH OLED
+   ============================================================ */
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #0a0a1a;
+    }
+}
+
+/* ============================================================
+   PRINT - IN ẤN
+   ============================================================ */
+
+@media print {
+    .btn,
+    .file-upload-area,
+    .mode-toggle {
+        display: none;
+    }
+
+    .card {
+        border: 1px solid #333;
+        background: #fff;
+        color: #000;
+    }
+
+    .card-title {
+        color: #000;
+    }
+
+    body {
+        background: #fff;
+        color: #000;
+    }
+
+    .output-box {
+        border: 1px solid #ccc;
+        background: #f9f9f9;
+        color: #000;
+    }
+}
+/* ============================================================
+   RESPONSIVE - TỰ ĐỘNG TỐI ƯU CHO ĐIỆN THOẠI
+   ============================================================ */
+
+/* Tablet và điện thoại lớn (<= 1024px) */
+@media (max-width: 1024px) {
+    .row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .container {
+        padding: 0 10px;
+    }
+
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .compare-box {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Điện thoại (<= 768px) */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+
+    .subtitle {
+        font-size: 12px;
+    }
+
+    .card {
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+
+    .card-title {
+        font-size: 0.9rem;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        font-size: 13px;
+        margin: 3px;
+    }
+
+    .btn-sm {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+
+    .mode-toggle .btn {
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+
+    textarea {
+        min-height: 60px;
+        font-size: 12px;
+    }
+
+    .tech-tag {
+        padding: 4px 10px;
+        font-size: 12px;
+    }
+
+    .output-box {
+        max-height: 120px;
+        font-size: 11px;
+        padding: 8px;
+    }
+
+    .output-box.saoyut-box {
+        max-height: 150px;
+        font-size: 10px;
+    }
+
+    .file-upload-area {
+        padding: 15px;
+    }
+    .file-upload-area .icon {
+        font-size: 24px;
+    }
+    .file-upload-area .text {
+        font-size: 12px;
+    }
+
+    .segment-item {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    .session-info {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+
+    .tab-btn {
+        font-size: 11px;
+        padding: 3px 10px;
+    }
+
+    .seed-display {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+
+    .compare-item .value {
+        font-size: 12px;
+        max-height: 60px;
+    }
+
+    .status {
+        font-size: 13px;
+        padding: 8px;
+    }
+
+    .flex {
+        gap: 6px;
+    }
+}
+
+/* Điện thoại rất nhỏ (<= 480px) */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.3rem;
+    }
+
+    .card {
+        padding: 10px;
+    }
+
+    .btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .btn-sm {
+        padding: 3px 8px;
+        font-size: 10px;
+    }
+
+    .tech-tag {
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+
+    .output-box {
+        font-size: 10px;
+        max-height: 100px;
+    }
+
+    .session-info {
+        font-size: 10px;
+    }
+
+    .seed-display {
+        font-size: 10px;
+    }
+}
+
+/* ============================================================
+   TOUCH DEVICE - TỐI ƯU CHO MÀN HÌNH CẢM ỨNG
+   ============================================================ */
+
+/* Thiết bị cảm ứng (điện thoại, tablet) */
+@media (hover: none) and (pointer: coarse) {
+    .btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .btn-sm {
+        min-height: 36px;
+        min-width: 36px;
+    }
+
+    .tech-tag {
+        padding: 8px 14px;
+        font-size: 14px;
+        min-height: 36px;
+    }
+
+    .tech-tag .remove {
+        font-size: 16px;
+        padding: 4px 8px;
+    }
+
+    textarea,
+    input,
+    select {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .file-upload-area {
+        padding: 20px;
+        min-height: 80px;
+    }
+
+    .tab-btn {
+        padding: 6px 14px;
+        font-size: 13px;
+        min-height: 36px;
+    }
+
+    .segment-item {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .btn-copy {
+        padding: 4px 12px;
+        font-size: 12px;
+        min-height: 30px;
+    }
+
+    .badge {
+        padding: 4px 12px;
+        font-size: 12px;
+    }
+}
