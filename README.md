@@ -43,6 +43,12 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 
 ---
 
+## ⚠ Giới hạn thiết kế & Mục đích sử dụng
+
+Thiết kế có giới hạn về độ nặng và lớn của nội dung, tuy có thể vẫn mã hóa được nhưng có thể sẽ gây lỗi hoặc crash, rất không tốt, không khả thi, không hợp lý, và có giới hạn các ký tự đặc biệt.
+
+Để sử dụng một cách hợp lý, hiệu quả, hữu ích và thông minh, nên mã hóa các nội dung vừa, hoặc nếu vẫn muốn mã hóa file lớn thì nên chia nhỏ ra để mã hóa, đồng thời cách này còn giúp tăng độ bảo mật lên khi mã hóa file lớn.
+
 ## ✨ Tính năng nổi bật
 
 ### 🔐 10 Kỹ thuật mã hóa SPC
