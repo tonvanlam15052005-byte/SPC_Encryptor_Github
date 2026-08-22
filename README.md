@@ -51,7 +51,7 @@ Thiết kế có giới hạn về độ nặng và lớn của nội dung, tuy 
 
 ## 🛑 Cách xử lý khi không thể giải ngược lại
 
-Vì bất kỳ lý do gì, khi cập nhật mà ở bản mới được công bố không thể giải được file cũ hoặc giải ra rác, hãy thử sử dụng lại các bản cũ hơn hoặc bản bạn đã dùng để mã hóa, nếu đã dùng đúng bản và đã kiểm tra và chắc chắn rằng thông tin nhập vào là đúng thì rất xin chia buồn với bạn rằng từu phiên bản v2.6.0 trở xuống có lỗi nghiêm trọng là không thể giải ngược lại hoặc giải ra rác, rât hi vọng các bạn thứ lỗi, chúng tôi đã cố gắng khác phục thông qua phiên bản v2.6.0.
+Vì bất kỳ lý do gì, khi cập nhật mà ở bản mới được công bố không thể giải được file cũ hoặc giải ra rác, hãy thử sử dụng lại các bản cũ hơn hoặc bản bạn đã dùng để mã hóa, nếu đã dùng đúng bản và đã kiểm tra và chắc chắn rằng thông tin nhập vào là đúng thì rất xin chia buồn với bạn rằng từ phiên bản v2.6.0 trở xuống có lỗi nghiêm trọng là không thể giải ngược lại hoặc giải ra rác, rất hi vọng các bạn thứ lỗi, chúng tôi đã cố gắng khác phục thông qua phiên bản v2.6.0.
 
 ## ✨ Tính năng nổi bật
 
