@@ -1,4 +1,3 @@
-# app.py - SPC Encryptor Pro v3.0 (Sửa lỗi S + UI mới)
 from flask import Flask, render_template, request, jsonify, send_file
 import hashlib
 import os
@@ -286,7 +285,7 @@ def technique_S(data, saoyut, reverse=False):
         shuffle_map = meta["shuffle_map"]
         total_size = meta["total_size"]
         
-        # ✅ BƯỚC 1: Tách dữ liệu theo shuffle_map
+        # ✓ BƯỚC 1: Tách dữ liệu theo shuffle_map
         shards_in_shuffled_order = []
         pos = 0
         for shard_idx in shuffle_map:
@@ -298,17 +297,17 @@ def technique_S(data, saoyut, reverse=False):
                 # Fallback nếu shard_idx không hợp lệ
                 shards_in_shuffled_order.append(b'')
         
-        # ✅ BƯỚC 2: Khôi phục thứ tự gốc
+        # ✓ BƯỚC 2: Khôi phục thứ tự gốc
         restored = [b''] * num_shards  # Khởi tạo với bytes rỗng thay vì None
         
         for new_pos, old_pos in enumerate(shuffle_map):
             if new_pos < len(shards_in_shuffled_order) and old_pos < num_shards:
                 restored[old_pos] = shards_in_shuffled_order[new_pos]
         
-        # ✅ BƯỚC 3: Ghép lại
+        # ✓ BƯỚC 3: Ghép lại
         result = b''.join(restored)  # join an toàn với bytes
         
-        # ✅ Kiểm tra
+        # ✓ Kiểm tra
         if len(result) != total_size:
             print(f"[S] Warning: Size mismatch! Expected: {total_size}, Got: {len(result)}")
             # Nếu mismatch, pad hoặc trim
@@ -520,7 +519,7 @@ ALL_TECHNIQUES = {
     "C": technique_C,
     "E": technique_E,
     "Z": technique_Z,
-    "S": technique_S,      # ✅ ĐÃ BẬT LẠI
+    "S": technique_S,      # ✓ ĐÃ BẬT LẠI
     "H": technique_H,
     "D": technique_D,
     "B": technique_B,
@@ -609,7 +608,7 @@ def spc_decrypt_with_order(data, saoyut_data, seed, technique_order, browser_ses
                 print(f"[DECRYPT] ❌ Hash mismatch")
                 continue
             
-            print(f"[DECRYPT] ✅ SEED MATCHES! Using: {try_seed}")
+            print(f"[DECRYPT] ✓ SEED MATCHES! Using: {try_seed}")
             
             # === TIẾN HÀNH GIẢI MÃ VỚI SEED ĐÚNG ===
             saoyut = SAOYUT(try_seed)
@@ -693,7 +692,7 @@ def spc_decrypt_with_order(data, saoyut_data, seed, technique_order, browser_ses
                     if name in ALL_TECHNIQUES:
                         result = ALL_TECHNIQUES[name](result, saoyut, reverse=True)
             
-            print(f"[DECRYPT] ✅ SUCCESS! Decrypted {len(result)} bytes")
+            print(f"[DECRYPT] ✓ SUCCESS! Decrypted {len(result)} bytes")
             print(f"[DECRYPT] ===== DECRYPT END =====\n")
             return result
             
