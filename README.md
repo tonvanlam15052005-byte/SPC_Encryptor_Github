@@ -68,7 +68,7 @@ Vì bất kỳ lý do gì, khi cập nhật mà ở bản mới được công b
 | **D** | Double Fake | Chèn 2 Header giả liên tiếp | ✓ Ổn định |
 | **B** | Hashing Chain | Tạo Pass từ băm xích (100 lần SHA256) | ✓ Ổn định |
 | **P** | RAM-only | Xóa vết trong RAM | ✓ Ổn định |
-| **L** | Low Storage | Chia thành Segments, lưu phân tán | √√ Ổn định |
+| **L** | Low Storage | Chia thành Segments, lưu phân tán | ✓ Ổn định |
 
 > ** ※ Thành công**: Tất cả 10 kỹ thuật đã được kiểm tra và hoạt động ổn định 100%. Đặc biệt, kỹ thuật **S (Sharding)** đã được sửa lỗi hoàn toàn, bao gồm cả trường hợp sử dụng đơn lẻ và kết hợp với các kỹ thuật khác như **B (Hashing Chain)**.
 
