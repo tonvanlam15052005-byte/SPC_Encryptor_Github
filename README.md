@@ -233,7 +233,7 @@ SPC_Encryptor/
 | **Lý thuyết SPC** | Minvokin Grabiel Xavier (Mr.MR) |
 | **Phục dựng & Phát triển** | SGM (Simple Gray Modules) & KOT/CAT STUDIOS |
 | **Hiện thực hóa Web** | Cộng đồng mã nguồn mở |
-| **Ngày hoàn thành** | 08/08/2026 |
+| **Ngày hoàn thành** | Tương đối |
 
 ---
 
