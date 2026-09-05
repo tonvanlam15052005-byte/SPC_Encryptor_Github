@@ -37,7 +37,7 @@ Dự án được phục dựng và phát triển bởi cộng đồng, với m�
 | Giai đoạn | Đơn vị thực hiện | Đóng góp |
 |-----------|------------------|----------|
 | **Sáng lập lý thuyết** | Mr.MR | Xây dựng nền tảng SPC |
-| **Phục dựng kiến trúc** | SGM (Simple Gray Modules) & KOT/CAT STUDIOS | Bảo toàn 80% bản thiết kế gốc |
+| **Phục dựng kiến trúc** | SGM (Simple Gray Modules) & KOT/CAT STUDIOS | Bảo toàn 80% bản thiết kế gốc (Không bao gồm 4.096) |
 | **Tối ưu hóa & Việt hóa** | Cộng đồng | Chuyển đổi sang ứng dụng thực tế |
 | **Hiện thực hóa Web** | Dự án mã nguồn mở | Xây dựng SPC Encryptor Pro |
 
