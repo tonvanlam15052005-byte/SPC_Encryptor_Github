@@ -84,8 +84,7 @@ Vì bất kỳ lý do gì, khi cập nhật mà ở bản mới được công b
 - ✓ **Data ID + Browser Session**: Phân biệt dữ liệu và phiên làm việc
 - ✓ **TTL tự động xóa**: Segment tự động xóa sau 1 giờ
 - ✓ **Fingerprint**: Gắn segment với thiết bị
-- ✓ **PWA Ready**: Có thể cài đặt như ứng dụng di động
-
+- ~~✓ **PWA Ready**: Có thể cài đặt như ứng dụng di động~~
 ---
 
 ## Cấu trúc hệ thống
