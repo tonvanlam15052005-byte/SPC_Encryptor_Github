@@ -11,20 +11,20 @@
 ## 🌍 Website
 [SPC Encryptor Pro](https://spc-encryptor-github.onrender.com)
 
-## 📖 Giới thiệu
+## Giới thiệu
 
 **SPC Encryptor Pro** là một hệ thống mã hóa đa tầng, được xây dựng dựa trên lý thuyết **SPC (Super Planet Crypting)** của **Minvokin Grabiel Xavier (Mr.MR)**. Dự án là sự kết hợp giữa lý thuyết bảo mật tiên tiến và công nghệ web hiện đại, cung cấp một công cụ mã hóa mạnh mẽ, linh hoạt và dễ sử dụng.
 
 Dự án được phục dựng và phát triển bởi cộng đồng, với mục tiêu:
 
-- ✅ Hiện thực hóa lý thuyết SPC vào sản phẩm thực tế.
-- ✅ Cung cấp công cụ bảo mật cá nhân mạnh mẽ, minh bạch và mã nguồn mở.
-- ✅ Tạo nền tảng học tập và nghiên cứu về các kỹ thuật mã hóa đa tầng.
-- ✅ Tôn vinh và bảo tồn di sản lý thuyết của Mr.MR.
+- ✓ Hiện thực hóa lý thuyết SPC vào sản phẩm thực tế.
+- ✓ Cung cấp công cụ bảo mật cá nhân mạnh mẽ, minh bạch và mã nguồn mở.
+- ✓ Tạo nền tảng học tập và nghiên cứu về các kỹ thuật mã hóa đa tầng.
+- ✓ Tôn vinh và bảo tồn di sản lý thuyết của Mr.MR.
 
 ---
 
-## 🧠 Nguồn gốc và lý thuyết (nhóm của chúng tôi)
+## Nguồn gốc và lý thuyết (nhóm của chúng tôi)
 
 ### Lý thuyết gốc: SPC (Super Planet Crypting)
 
@@ -53,42 +53,42 @@ Thiết kế có giới hạn về độ nặng và lớn của nội dung, tuy 
 
 Vì bất kỳ lý do gì, khi cập nhật mà ở bản mới được công bố không thể giải được file cũ hoặc giải ra rác, hãy thử sử dụng lại các bản cũ hơn hoặc bản bạn đã dùng để mã hóa, nếu đã dùng đúng bản và đã kiểm tra và chắc chắn rằng thông tin nhập vào là đúng thì rất xin chia buồn với bạn rằng từ phiên bản v2.6.0 trở xuống có lỗi nghiêm trọng là không thể giải ngược lại hoặc giải ra rác, rất hi vọng các bạn thứ lỗi, chúng tôi đã cố gắng khác phục thông qua phiên bản v2.6.0.
 
-## ✨ Tính năng nổi bật
+## Tính năng nổi bật
 
-### 🔐 10 Kỹ thuật mã hóa SPC
+### 10 Kỹ thuật mã hóa SPC
 
 | Ký hiệu | Tên kỹ thuật | Mô tả | Trạng thái |
 |---------|--------------|-------|------------|
-| **R** | Header Removal | Tách Header khỏi dữ liệu, lưu vào SAOYUT | ✅ Ổn định |
-| **C** | Cut & Swap | Cắt đôi và đổi chỗ hai nửa dữ liệu | ✅ Ổn định |
-| **E** | Enigma | Mã hóa XOR với Seed | ✅ Ổn định |
-| **Z** | Zip Hiding | Chèn Header giả `.txt` | ✅ Ổn định |
-| **S** | Sharding | Chia dữ liệu thành nhiều mảnh, xáo trộn thứ tự | ✅ Ổn định |
-| **H** | Header Masking | XOR với key ngẫu nhiên | ✅ Ổn định |
-| **D** | Double Fake | Chèn 2 Header giả liên tiếp | ✅ Ổn định |
-| **B** | Hashing Chain | Tạo Pass từ băm xích (100 lần SHA256) | ✅ Ổn định |
-| **P** | RAM-only | Xóa vết trong RAM | ✅ Ổn định |
-| **L** | Low Storage | Chia thành Segments, lưu phân tán | ✅ Ổn định |
+| **R** | Header Removal | Tách Header khỏi dữ liệu, lưu vào SAOYUT | ✓ Ổn định |
+| **C** | Cut & Swap | Cắt đôi và đổi chỗ hai nửa dữ liệu | ✓ Ổn định |
+| **E** | Enigma | Mã hóa XOR với Seed | ✓ Ổn định |
+| **Z** | Zip Hiding | Chèn Header giả `.txt` | ✓ Ổn định |
+| **S** | Sharding | Chia dữ liệu thành nhiều mảnh, xáo trộn thứ tự | ✓ Ổn định |
+| **H** | Header Masking | XOR với key ngẫu nhiên | ✓ Ổn định |
+| **D** | Double Fake | Chèn 2 Header giả liên tiếp | ✓ Ổn định |
+| **B** | Hashing Chain | Tạo Pass từ băm xích (100 lần SHA256) | ✓ Ổn định |
+| **P** | RAM-only | Xóa vết trong RAM | ✓ Ổn định |
+| **L** | Low Storage | Chia thành Segments, lưu phân tán | √√ Ổn định |
 
-> **🎉 Thành công**: Tất cả 10 kỹ thuật đã được kiểm tra và hoạt động ổn định 100%. Đặc biệt, kỹ thuật **S (Sharding)** đã được sửa lỗi hoàn toàn, bao gồm cả trường hợp sử dụng đơn lẻ và kết hợp với các kỹ thuật khác như **B (Hashing Chain)**.
+> ** ※ Thành công**: Tất cả 10 kỹ thuật đã được kiểm tra và hoạt động ổn định 100%. Đặc biệt, kỹ thuật **S (Sharding)** đã được sửa lỗi hoàn toàn, bao gồm cả trường hợp sử dụng đơn lẻ và kết hợp với các kỹ thuật khác như **B (Hashing Chain)**.
 
-### 🛠️ Các tính năng khác
+### Các tính năng khác
 
-- ✅ **Bốn yếu tố giải mã**: Dữ liệu mã hóa + SAOYUT + Seed + Segments
-- ✅ **SAOYUT Manager**: Xuất/nhập metadata dưới dạng file JSON đơn giản
-- ✅ **Segment Manager**: Tải lên, tải xuống, xóa segments
-- ✅ **Kéo thả file**: Hỗ trợ .txt, .spc, .saoyut
-- ✅ **3 định dạng output**: Base64, Hex, Plaintext
-- ✅ **Giao diện trực quan**: Kéo thả sắp xếp kỹ thuật
-- ✅ **Segment Size tùy chỉnh**: 1KB → 100MB
-- ✅ **Data ID + Browser Session**: Phân biệt dữ liệu và phiên làm việc
-- ✅ **TTL tự động xóa**: Segment tự động xóa sau 1 giờ
-- ✅ **Fingerprint**: Gắn segment với thiết bị
-- ✅ **PWA Ready**: Có thể cài đặt như ứng dụng di động
+- ✓ **Bốn yếu tố giải mã**: Dữ liệu mã hóa + SAOYUT + Seed + Segments
+- ✓ **SAOYUT Manager**: Xuất/nhập metadata dưới dạng file JSON đơn giản
+- ✓ **Segment Manager**: Tải lên, tải xuống, xóa segments
+- ✓ **Kéo thả file**: Hỗ trợ .txt, .spc, .saoyut
+- ✓ **3 định dạng output**: Base64, Hex, Plaintext
+- ✓ **Giao diện trực quan**: Kéo thả sắp xếp kỹ thuật
+- ✓ **Segment Size tùy chỉnh**: 1KB → 100MB
+- ✓ **Data ID + Browser Session**: Phân biệt dữ liệu và phiên làm việc
+- ✓ **TTL tự động xóa**: Segment tự động xóa sau 1 giờ
+- ✓ **Fingerprint**: Gắn segment với thiết bị
+- ✓ **PWA Ready**: Có thể cài đặt như ứng dụng di động
 
 ---
 
-## 🔧 Cấu trúc hệ thống
+## Cấu trúc hệ thống
 
 ### Lưu đồ mã hóa (10 kỹ thuật)
 
@@ -117,7 +117,7 @@ Trong đó:
 
 ---
 
-## 🛡️ Bảo mật và Lưu ý
+## Bảo mật và Lưu ý
 
 ### Cơ chế bảo vệ
 
@@ -139,7 +139,7 @@ Trong đó:
 
 ---
 
-## 🚀 Hướng dẫn cài đặt và chạy
+## Hướng dẫn cài đặt và chạy
 
 ### Yêu cầu hệ thống
 
@@ -191,7 +191,7 @@ Bấm **Deploy**. Render sẽ tự động build và chạy ứng dụng.
 
 ---
 
-## 📁 Cấu trúc dự án
+## Cấu trúc dự án
 
 ```
 SPC_Encryptor/
@@ -211,7 +211,7 @@ SPC_Encryptor/
 
 ---
 
-## 📝 Lịch sử phiên bản
+## Lịch sử phiên bản
 
 | Phiên bản | Ngày (Tương đối)| Thay đổi |
 |-----------|------|----------|
@@ -227,7 +227,7 @@ SPC_Encryptor/
 
 ---
 
-## 👨‍💻 Tác giả
+## Tác giả
 
 | Vai trò | Tên |
 |---------|-----|
@@ -264,18 +264,4 @@ Mọi đóng góp đều được hoan nghênh! Hãy tạo **Issue** hoặc **Pu
 ---
 
 **⭐ Star dự án này nếu bạn thấy nó hữu ích!**
-
----
-
-## 📊 SO SÁNH THAY ĐỔI
-
-| Mục | Cũ | Mới |
-|-----|-----|-----|
-| **Phiên bản** | v2.5.5 | **v2.6.0** ✅ |
-| **Badge** | 2.5.5 | **2.6.0** ✅ |
-| **Lịch sử** | 7 dòng | **8 dòng** ✅ |
-| **Ngày** | 07/08/2026 | **08/08/2026** ✅ |
-| **Mô tả S** | "Sửa lỗi S + B" | **"Sửa hoàn chỉnh lỗi kỹ thuật S (Sharding)"** ✅ |
-| **Commit** | "SPC Encryptor Pro v2.5.5" | **"SPC Encryptor Pro v2.6.0"** ✅ |
-
 
