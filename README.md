@@ -14,6 +14,7 @@
 ## ⚠ Warning
 
 - Chúng tôi chưa từng phát hành hay phân phối bất kỳ bản nào sang các nền tảng khác, vui lòng cẩn thận, khuyến nghị không nên và tuyệt đối không nên tải để tránh nhiễm mã độc, virus, malware,....
+- Chỉ sử dụng và truy cập Web, phiên bản phát hành và phân phối chính thức được chính nhà phát triển công khai và để cập, không nên tin tưởng các nguồn ngoài kênh chính thức của nhà phát triển.
 
 ## Giới thiệu
 
