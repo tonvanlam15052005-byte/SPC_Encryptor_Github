@@ -11,6 +11,10 @@
 ## 🌍 Website
 [SPC Encryptor Pro](https://spc-encryptor-github.onrender.com)
 
+## ⚠ Warning
+
+- Chúng tôi chưa từng phát hành hay phân phối bất kỳ bản nào sang các nền tảng khác, vui lòng cẩn thận, khuyến nghị không nên và tuyệt đối không nên tải để tránh nhiễm mã độc, virus, malware,....
+
 ## Giới thiệu
 
 **SPC Encryptor Pro** là một hệ thống mã hóa đa tầng, được xây dựng dựa trên lý thuyết **SPC (Super Planet Crypting)** của **Minvokin Grabiel Xavier (Mr.MR)**. Dự án là sự kết hợp giữa lý thuyết bảo mật tiên tiến và công nghệ web hiện đại, cung cấp một công cụ mã hóa mạnh mẽ, linh hoạt và dễ sử dụng.
